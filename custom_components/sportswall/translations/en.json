@@ -1,0 +1,61 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Sports Wall",
+        "description": "Pick the leagues to show. For a television, also pick the TV power media player and the Chromecast on that set. Theme, units, and other options are under Configure after setup.",
+        "data": {
+          "leagues": "Leagues",
+          "tv_enabled": "This TV is a sports board",
+          "tv_power": "TV power (on/off)",
+          "tv_player": "Chromecast on that TV",
+          "units": "Units",
+          "display_mode": "Display",
+          "theme": "Theme",
+          "time_format": "Clock",
+          "show_logos": "Show team logos",
+          "refresh_seconds": "Image refresh",
+          "scope": "Which games",
+          "quiet_enabled": "Quiet hours (do not take over the TV)",
+          "quiet_start": "Quiet hours start",
+          "quiet_end": "Quiet hours end"
+        }
+      }
+    },
+    "error": {
+      "tv_player_required": "Choose the Chromecast media player if the TV is a sports board",
+      "leagues_required": "Choose at least one league"
+    },
+    "abort": {
+      "already_configured": "Sports Wall is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Sports Wall",
+        "description": "Image mode is for a television whose Chromecast cannot load Home Assistant. Live mode is for a browser, tablet, or Chromecast that can.",
+        "data": {
+          "leagues": "Leagues",
+          "tv_enabled": "This TV is a sports board",
+          "tv_power": "TV power (on/off)",
+          "tv_player": "Chromecast on that TV",
+          "units": "Units",
+          "display_mode": "Display",
+          "theme": "Theme",
+          "time_format": "Clock",
+          "show_logos": "Show team logos",
+          "refresh_seconds": "Image refresh",
+          "scope": "Which games",
+          "quiet_enabled": "Quiet hours (do not take over the TV)",
+          "quiet_start": "Quiet hours start",
+          "quiet_end": "Quiet hours end"
+        }
+      }
+    },
+    "error": {
+      "tv_player_required": "Choose the Chromecast media player if the TV is a sports board",
+      "leagues_required": "Choose at least one league"
+    }
+  }
+}

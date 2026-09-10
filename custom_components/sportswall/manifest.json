@@ -1,0 +1,13 @@
+{
+  "domain": "sportswall",
+  "name": "Sports Wall",
+  "after_dependencies": ["cast", "frontend", "lovelace", "media_player"],
+  "codeowners": ["@gmisner"],
+  "config_flow": true,
+  "documentation": "https://github.com/gmisner/ha-sportswall",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/gmisner/ha-sportswall/issues",
+  "requirements": ["Pillow"],
+  "version": "1.0.0"
+}
