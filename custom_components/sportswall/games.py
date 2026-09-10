@@ -175,6 +175,18 @@ def _temp_label(temp_f: float | None, units: str) -> str:
     return f"{int(round(celsius))}°C"
 
 
+def on_todays_board(game: Game, now: datetime) -> bool:
+    """Live games always show; others must start on the local calendar day."""
+    if game.is_live:
+        return True
+    if game.start is None:
+        return False
+    start = game.start
+    if start.tzinfo is not None and now.tzinfo is not None:
+        start = start.astimezone(now.tzinfo)
+    return start.date() == now.date()
+
+
 def sort_games(games: list[Game]) -> list[Game]:
     """Live games first, then start time, then finals."""
 

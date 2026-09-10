@@ -6,7 +6,7 @@ from pathlib import Path
 from sportswall.const import LEAGUE_MLB, LEAGUE_NFL
 from sportswall.distance import haversine_miles
 from sportswall.espn import parse_scoreboard
-from sportswall.games import Game, TeamSide
+from sportswall.games import Game, TeamSide, on_todays_board
 from sportswall.teams import team_home
 
 
@@ -208,6 +208,46 @@ def test_live_mlb_scores_and_broadcasts() -> None:
     assert game.network == "MLB.TV"
     assert game.away is not None and game.away.score == 2
     assert game.home is not None and game.home.score == 4
+
+
+def test_todays_board_keeps_live_games_from_next_utc_day() -> None:
+    now = datetime(2026, 9, 9, 17, 30, tzinfo=UTC)
+    live = Game(
+        id="live",
+        league=LEAGUE_NFL,
+        name="Patriots at Seahawks",
+        short_name="NE @ SEA",
+        start=datetime(2026, 9, 10, 0, 20, tzinfo=UTC),
+        status="in",
+        status_detail="1st",
+        period="1st",
+        clock="1:22",
+        venue="Lumen Field",
+        venue_city="Seattle",
+        venue_region="WA",
+        indoor=False,
+        away=_side(),
+        home=_side(abbreviation="SEA", home=True),
+    )
+    later = Game(
+        id="later",
+        league=LEAGUE_NFL,
+        name="49ers vs Rams",
+        short_name="SF VS LAR",
+        start=datetime(2026, 9, 11, 0, 35, tzinfo=UTC),
+        status="pre",
+        status_detail="Thu",
+        period="",
+        clock="",
+        venue="Sao Paulo",
+        venue_city="Sao Paulo",
+        venue_region="",
+        indoor=False,
+        away=_side(abbreviation="SF"),
+        home=_side(abbreviation="LAR", home=True),
+    )
+    assert on_todays_board(live, now)
+    assert not on_todays_board(later, now)
 
 
 def test_fonts_ship_with_the_integration() -> None:

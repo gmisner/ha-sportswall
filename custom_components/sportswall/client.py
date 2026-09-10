@@ -4,19 +4,23 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 from aiohttp import ClientError, ClientSession, ClientTimeout
 
 from .const import OPEN_METEO_FORECAST, OPEN_METEO_GEOCODE, SCOPE_TODAY
 from .distance import has_coords
 from .espn import parse_scoreboard, scoreboard_url
-from .games import Game, sort_games
+from .games import Game, on_todays_board, sort_games
 from .weather import parse_open_meteo
 
 _LOGGER = logging.getLogger(__name__)
 TIMEOUT = ClientTimeout(total=12)
-HEADERS = {"User-Agent": "HomeAssistant-SportsWall/1.0", "Accept": "application/json"}
+# ESPN returns 403 for User-Agents that contain "HomeAssistant".
+HEADERS = {
+    "User-Agent": "SportsWall/1.0 (+https://github.com/gmisner/ha-sportswall)",
+    "Accept": "application/json",
+}
 
 
 class SportsClient:
@@ -33,17 +37,35 @@ class SportsClient:
         now: datetime,
         scope: str = SCOPE_TODAY,
     ) -> list[Game]:
-        date_key = now.strftime("%Y%m%d") if scope == SCOPE_TODAY else None
-        results = await asyncio.gather(
-            *[self._scoreboard(league, date_key) for league in leagues],
-            return_exceptions=True,
-        )
+        date_keys = [None]
+        if scope == SCOPE_TODAY:
+            date_keys = [
+                now.strftime("%Y%m%d"),
+                (now - timedelta(days=1)).strftime("%Y%m%d"),
+            ]
+        jobs = [
+            self._scoreboard(league, date_key)
+            for league in leagues
+            for date_key in date_keys
+        ]
+        results = await asyncio.gather(*jobs, return_exceptions=True)
         games: list[Game] = []
-        for league, result in zip(leagues, results, strict=True):
+        seen: set[str] = set()
+        errors: list[Exception] = []
+        for result in results:
             if isinstance(result, Exception):
-                _LOGGER.warning("Sports Wall could not load %s: %s", league, result)
+                errors.append(result)
+                _LOGGER.warning("Sports Wall could not load a scoreboard: %s", result)
                 continue
-            games.extend(result)
+            for game in result:
+                if game.id in seen:
+                    continue
+                seen.add(game.id)
+                games.append(game)
+        if scope == SCOPE_TODAY:
+            games = [game for game in games if on_todays_board(game, now)]
+        if not games and errors:
+            raise errors[0]
         await self._enrich_weather(games)
         return sort_games(games)
 
@@ -127,8 +149,7 @@ class SportsClient:
                 url, params=params, timeout=TIMEOUT, headers=HEADERS
             ) as response:
                 if response.status != 200:
-                    _LOGGER.debug("HTTP %s for %s", response.status, url)
-                    return None
+                    raise ClientError(f"HTTP {response.status} for {url}")
                 return await response.json(content_type=None)
         except (ClientError, TimeoutError, ValueError) as err:
             _LOGGER.debug("Request failed %s: %s", url, err)

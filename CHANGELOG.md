@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1
+
+- Fetch ESPN with a User-Agent it does not block, so today's games load
+- Keep live games on the board even when ESPN files them on the next UTC date
+
 ## 1.0.0
 
 - Featured matchup plus ESPN-style bottom ticker (inspired by
