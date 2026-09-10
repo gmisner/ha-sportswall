@@ -6,7 +6,7 @@ from pathlib import Path
 from sportswall.const import LEAGUE_MLB, LEAGUE_NFL
 from sportswall.distance import haversine_miles
 from sportswall.espn import parse_scoreboard
-from sportswall.games import Game, TeamSide, on_todays_board, sort_games
+from sportswall.games import Game, TeamSide, games_fingerprint, on_todays_board, sort_games
 from sportswall.teams import team_home
 
 
@@ -286,6 +286,65 @@ def test_todays_board_keeps_live_games_from_next_utc_day() -> None:
     )
     assert on_todays_board(live, now)
     assert not on_todays_board(later, now)
+
+
+def test_fingerprint_ignores_wall_clock_and_tracks_scores() -> None:
+    first = Game(
+        id="1",
+        league=LEAGUE_NFL,
+        name="Patriots at Seahawks",
+        short_name="NE @ SEA",
+        start=datetime(2026, 9, 10, tzinfo=UTC),
+        status="in",
+        status_detail="1st",
+        period="1st",
+        clock="8:42",
+        venue="Lumen Field",
+        venue_city="Seattle",
+        venue_region="WA",
+        indoor=False,
+        broadcasts=["NBC"],
+        away=_side(score=7),
+        home=_side(abbreviation="SEA", home=True, score=14),
+    )
+    same = Game(
+        id="1",
+        league=LEAGUE_NFL,
+        name="Patriots at Seahawks",
+        short_name="NE @ SEA",
+        start=datetime(2026, 9, 10, tzinfo=UTC),
+        status="in",
+        status_detail="1st",
+        period="1st",
+        clock="8:42",
+        venue="Lumen Field",
+        venue_city="Seattle",
+        venue_region="WA",
+        indoor=False,
+        broadcasts=["NBC"],
+        away=_side(score=7),
+        home=_side(abbreviation="SEA", home=True, score=14),
+    )
+    scored = Game(
+        id="1",
+        league=LEAGUE_NFL,
+        name="Patriots at Seahawks",
+        short_name="NE @ SEA",
+        start=datetime(2026, 9, 10, tzinfo=UTC),
+        status="in",
+        status_detail="1st",
+        period="1st",
+        clock="8:12",
+        venue="Lumen Field",
+        venue_city="Seattle",
+        venue_region="WA",
+        indoor=False,
+        broadcasts=["NBC"],
+        away=_side(score=10),
+        home=_side(abbreviation="SEA", home=True, score=14),
+    )
+    assert games_fingerprint([first]) == games_fingerprint([same])
+    assert games_fingerprint([first]) != games_fingerprint([scored])
 
 
 def test_fonts_ship_with_the_integration() -> None:

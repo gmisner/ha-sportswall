@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3
+
+- Tighten the board for a 75-inch TV: larger type, less empty card space
+- Recast and reload the dashboard only when scores or status change
+- Slow the default poll from 45 seconds to 2 minutes
+
 ## 1.0.2
 
 - Feature the latest live kickoff so primetime football is not buried under afternoon baseball

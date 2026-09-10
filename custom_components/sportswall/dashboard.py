@@ -43,7 +43,7 @@ def _dashboard_config(theme: str, games_entity: str) -> dict[str, Any]:
                 "title": "Board",
                 "path": VIEW_PATH,
                 "theme": theme,
-                "type": "masonry",
+                "type": "panel",
                 "cards": [
                     {
                         "type": "markdown",
@@ -168,68 +168,92 @@ async def async_write_theme(hass: HomeAssistant) -> None:
   accent-color: "#ff4652"
   primary-background-color: "#070a12"
   secondary-background-color: "#070a12"
-  card-background-color: "#121a2c"
+  card-background-color: "#070a12"
   primary-text-color: "#f6f8fc"
   secondary-text-color: "#94a2bc"
   text-primary-color: "#f6f8fc"
-  app-header-background-color: "#0a0e1a"
+  app-header-background-color: "#070a12"
   app-header-text-color: "#f6f8fc"
-  ha-card-background: "#121a2c"
+  ha-card-background: "#070a12"
   ha-card-border-width: 0px
-  ha-card-border-radius: 16px
+  ha-card-border-radius: 0px
   ha-card-box-shadow: "none"
   lovelace-background: "#070a12"
+  ha-font-size-l: 28px
+  ha-font-size-xl: 36px
+  ha-font-size-2xl: 48px
+  ha-font-size-3xl: 72px
+  ha-font-size-4xl: 96px
+  ha-font-size-5xl: 128px
 
 sportswall-broadcast:
   primary-color: "#ffd60a"
   accent-color: "#e61c28"
   primary-background-color: "#08080a"
   secondary-background-color: "#08080a"
-  card-background-color: "#16161a"
+  card-background-color: "#08080a"
   primary-text-color: "#fafafa"
   secondary-text-color: "#a8a8b0"
   text-primary-color: "#fafafa"
-  app-header-background-color: "#0c0c0e"
+  app-header-background-color: "#08080a"
   app-header-text-color: "#fafafa"
-  ha-card-background: "#16161a"
+  ha-card-background: "#08080a"
   ha-card-border-width: 0px
-  ha-card-border-radius: 16px
+  ha-card-border-radius: 0px
   ha-card-box-shadow: "none"
   lovelace-background: "#08080a"
+  ha-font-size-l: 28px
+  ha-font-size-xl: 36px
+  ha-font-size-2xl: 48px
+  ha-font-size-3xl: 72px
+  ha-font-size-4xl: 96px
+  ha-font-size-5xl: 128px
 
 sportswall-night:
   primary-color: "#8caa78"
   accent-color: "#b44646"
   primary-background-color: "#04060a"
   secondary-background-color: "#04060a"
-  card-background-color: "#0c1018"
+  card-background-color: "#04060a"
   primary-text-color: "#a8b4c8"
   secondary-text-color: "#58667c"
   text-primary-color: "#a8b4c8"
-  app-header-background-color: "#06080e"
+  app-header-background-color: "#04060a"
   app-header-text-color: "#a8b4c8"
-  ha-card-background: "#0c1018"
+  ha-card-background: "#04060a"
   ha-card-border-width: 0px
-  ha-card-border-radius: 16px
+  ha-card-border-radius: 0px
   ha-card-box-shadow: "none"
   lovelace-background: "#04060a"
+  ha-font-size-l: 28px
+  ha-font-size-xl: 36px
+  ha-font-size-2xl: 48px
+  ha-font-size-3xl: 72px
+  ha-font-size-4xl: 96px
+  ha-font-size-5xl: 128px
 
 sportswall-daylight:
   primary-color: "#c45a1c"
   accent-color: "#c4242a"
   primary-background-color: "#e8ecf2"
   secondary-background-color: "#e8ecf2"
-  card-background-color: "#ffffff"
+  card-background-color: "#e8ecf2"
   primary-text-color: "#121824"
   secondary-text-color: "#5a667a"
   text-primary-color: "#121824"
-  app-header-background-color: "#f8fafc"
+  app-header-background-color: "#e8ecf2"
   app-header-text-color: "#121824"
-  ha-card-background: "#ffffff"
+  ha-card-background: "#e8ecf2"
   ha-card-border-width: 0px
-  ha-card-border-radius: 16px
+  ha-card-border-radius: 0px
   ha-card-box-shadow: "none"
   lovelace-background: "#e8ecf2"
+  ha-font-size-l: 28px
+  ha-font-size-xl: 36px
+  ha-font-size-2xl: 48px
+  ha-font-size-3xl: 72px
+  ha-font-size-4xl: 96px
+  ha-font-size-5xl: 128px
 """,
             encoding="utf-8",
         )

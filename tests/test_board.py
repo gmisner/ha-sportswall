@@ -125,7 +125,9 @@ def test_board_payload_and_png() -> None:
     assert "Foxborough" in board["games"][0]["cities_route"]
     assert "NE  —  @  —  SEA" == board["md_score"]
     assert "NBC" in board["md_league"]
-    assert "TV NBC" in board["md_facts"]
+    assert "NBC" in board["md_facts"]
+    assert "Lumen Field" in board["md_facts"]
+    assert "\n\n" not in board["md_facts"]
     assert board["md_ticker"] == ""
     raw = render_board_png(games, now=now, style=STYLE_ARENA, show_logos=False)
     assert raw[:8] == b"\x89PNG\r\n\x1a\n"

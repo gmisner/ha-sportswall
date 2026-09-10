@@ -175,6 +175,23 @@ def _temp_label(temp_f: float | None, units: str) -> str:
     return f"{int(round(celsius))}°C"
 
 
+def games_fingerprint(games: list[Game]) -> tuple[tuple[Any, ...], ...]:
+    """Identity used to skip Lovelace and Cast reloads when scores are unchanged."""
+    return tuple(
+        (
+            game.id,
+            game.status,
+            game.period,
+            game.clock,
+            game.away.score if game.away else None,
+            game.home.score if game.home else None,
+            tuple(game.broadcasts),
+            game.status_detail,
+        )
+        for game in games
+    )
+
+
 def on_todays_board(game: Game, now: datetime) -> bool:
     """Live games always show; others must start on the local calendar day."""
     if game.is_live:

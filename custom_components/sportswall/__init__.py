@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, Platform
 from homeassistant.core import Event, HomeAssistant, ServiceCall
 
-from .const import DOMAIN, SERVICE_RECAST
+from .const import CONF_REFRESH_SECONDS, DEFAULT_REFRESH_SECONDS, DOMAIN, SERVICE_RECAST
 from .dashboard import async_ensure_dashboard, async_write_theme, dashboard_path_for, games_entity_for
 from .runtime import SportswallRuntime
 from .tv import RECAST_REASON
@@ -17,6 +17,17 @@ from .www_files import async_install_www
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = [Platform.BINARY_SENSOR, Platform.SENSOR, Platform.SWITCH]
+
+
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Move installs off the original 45-second recast default."""
+    if entry.version < 2:
+        data = dict(entry.data)
+        if data.get(CONF_REFRESH_SECONDS) in (None, 45):
+            data[CONF_REFRESH_SECONDS] = DEFAULT_REFRESH_SECONDS
+        hass.config_entries.async_update_entry(entry, data=data, version=2)
+        _LOGGER.info("Migrated Sports Wall config entry to version 2")
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

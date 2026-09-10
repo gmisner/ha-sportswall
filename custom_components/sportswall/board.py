@@ -18,27 +18,21 @@ from .games import Game, sort_games
 
 DASHBOARD_MARKDOWN = """{% set b = state_attr('__GAMES_ENTITY__','board') or {} %}
 {% if b.has_games %}
-{% if b.away_logo %}![]({{ b.away_logo }}){% endif %}{% if b.home_logo %} ![]({{ b.home_logo }}){% endif %}
-
-## {{ b.md_status }}{% if b.md_league %} · {{ b.md_league }}{% endif %}
-
 # {{ b.md_score }}
 
-### {{ b.md_cities }}
+## {{ b.md_status }}
 
-{{ b.md_detail }}
+{% if b.md_cities %}### {{ b.md_cities }}{% endif %}
 
 {{ b.md_facts }}
 {% if b.md_ticker %}
-
----
 
 {{ b.md_ticker }}
 {% endif %}
 {% else %}
 # {{ b.clock }}
 
-### NO GAMES TODAY
+## NO GAMES TODAY
 
 {{ b.subtitle }}
 {% endif %}
@@ -188,31 +182,39 @@ def _markdown_copy(
     vs = "@" if featured.get("status_kind") == "pre" else "-"
     travel = featured.get("travel_label") or ""
     cities = featured.get("cities_route") or ""
-    travel_line = " · ".join(bit for bit in (travel, cities) if bit) or "TBD"
-    weather = featured.get("weather_line") or ("Indoor" if featured.get("indoor") else "TBD")
+    weather = featured.get("weather_line") or ("Indoor" if featured.get("indoor") else "")
     rest = [card for card in cards if card.get("id") != featured.get("id")]
+    status = str(featured.get("status_label") or "")
+    detail = str(featured.get("status_meta") or "")
+    league = str(featured.get("league_label") or "")
+    network = str(featured.get("network") or "")
+    status_bits = [status]
+    if detail and detail not in {status, "TBD"}:
+        status_bits.append(detail)
+    if league:
+        status_bits.append(league)
+    if network and network != "TBD":
+        status_bits.append(network)
     return {
-        "md_status": str(featured.get("status_label") or ""),
-        "md_league": " · ".join(
-            bit
-            for bit in (featured.get("league_label"), featured.get("network"))
-            if bit
-        ),
+        "md_status": " · ".join(status_bits),
+        "md_league": " · ".join(bit for bit in (league, network) if bit),
         "md_score": (
             f"{away_ab}  {featured.get('away_score')}  {vs}  "
             f"{featured.get('home_score')}  {home_ab}"
         ),
         "md_cities": cities,
-        "md_detail": str(featured.get("status_meta") or featured.get("status_label") or ""),
-        "md_facts": "\n\n".join(
-            [
-                f"TV {featured.get('network') or 'TBD'}",
-                f"WX {weather}",
-                f"VENUE {featured.get('venue') or featured.get('venue_label') or 'TBD'}",
-                f"TRAVEL {travel_line}",
-            ]
+        "md_detail": detail or status,
+        "md_facts": " · ".join(
+            bit
+            for bit in (
+                network if network and network != "TBD" else "",
+                weather,
+                str(featured.get("venue") or featured.get("venue_label") or ""),
+                travel,
+            )
+            if bit
         ),
-        "md_ticker": "\n\n".join(_ticker_line(card) for card in rest),
+        "md_ticker": "  ·  ".join(_ticker_line(card) for card in rest[:8]),
         "away_logo": str(away.get("logo_url") or "") if show_logos else "",
         "home_logo": str(home.get("logo_url") or "") if show_logos else "",
     }

@@ -110,7 +110,7 @@ units or be forced to 12-hour / 24-hour.
 
 | What | Where | Default |
 |---|---|---|
-| Leagues, today vs slate, display, theme, units, clock, logos, image refresh, quiet hours | Integration → Configure | NFL/NBA/MLB/NHL, today, Image, Arena night, imperial, 45 s refresh |
+| Leagues, today vs slate, display, theme, units, clock, logos, image refresh, quiet hours | Integration → Configure | NFL/NBA/MLB/NHL, today, Image, Arena night, imperial, 120 s refresh |
 | TV is a sports board | `switch.sportswall_tv` | on after setup |
 
 **Today only** is the wall you asked for: games whose local start date

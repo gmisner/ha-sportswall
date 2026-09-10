@@ -54,7 +54,7 @@ from .const import (
     keepalive_interval,
 )
 from .dashboard import dashboard_path_for
-from .games import Game
+from .games import Game, games_fingerprint
 from .schedule import in_quiet_hours
 from .tv import (
     RECAST_REASON,
@@ -88,6 +88,7 @@ class SportswallRuntime:
         self._cast_delay_unsub: CALLBACK_TYPE | None = None
         self._client = SportsClient(async_get_clientsession(hass))
         self._poll_lock = asyncio.Lock()
+        self._fingerprint: tuple[tuple[Any, ...], ...] | None = None
 
     @property
     def tv_power(self) -> str:
@@ -223,7 +224,7 @@ class SportswallRuntime:
             self._cast_delay_unsub()
             self._cast_delay_unsub = None
 
-    async def async_refresh(self) -> None:
+    async def async_refresh(self) -> bool:
         async with self._poll_lock:
             try:
                 games = await self._client.fetch_games(self.leagues, self._local_now(), self.scope)
@@ -231,15 +232,21 @@ class SportswallRuntime:
                 self.last_error = str(err)
                 _LOGGER.warning("Sports Wall refresh failed: %s", err)
                 self._notify()
-                return
+                return True
+            fingerprint = games_fingerprint(games)
+            changed = fingerprint != self._fingerprint or self.last_error is not None
             self.games = games
             self.next_game = next((game for game in games if game.status == "pre"), None)
             self.last_error = None
+            if not changed:
+                return False
+            self._fingerprint = fingerprint
             self._notify()
             try:
                 await self._write_board_image()
             except OSError as err:
                 _LOGGER.warning("Could not write Sports Wall image: %s", err)
+            return True
 
     @callback
     def _tv_power_changed(self, event: Event) -> None:
@@ -254,8 +261,8 @@ class SportswallRuntime:
         self.hass.add_job(self._keepalive_task())
 
     async def _keepalive_task(self) -> None:
-        await self.async_refresh()
-        await self.async_cast(reason="keep")
+        if await self.async_refresh():
+            await self.async_cast(reason="keep")
 
     def _tv_is_on(self) -> bool:
         if not self.tv_power:

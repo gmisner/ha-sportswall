@@ -224,7 +224,7 @@ def _options_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
 class SportswallConfigFlow(ConfigFlow, domain=DOMAIN):
     """Set up Sports Wall."""
 
-    VERSION = 1
+    VERSION = 2
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
