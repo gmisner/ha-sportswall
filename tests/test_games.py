@@ -6,7 +6,7 @@ from pathlib import Path
 from sportswall.const import LEAGUE_MLB, LEAGUE_NFL
 from sportswall.distance import haversine_miles
 from sportswall.espn import parse_scoreboard
-from sportswall.games import Game, TeamSide, on_todays_board
+from sportswall.games import Game, TeamSide, on_todays_board, sort_games
 from sportswall.teams import team_home
 
 
@@ -208,6 +208,44 @@ def test_live_mlb_scores_and_broadcasts() -> None:
     assert game.network == "MLB.TV"
     assert game.away is not None and game.away.score == 2
     assert game.home is not None and game.home.score == 4
+
+
+def test_sort_features_later_live_kickoff() -> None:
+    mlb = Game(
+        id="mlb",
+        league=LEAGUE_MLB,
+        name="Guardians at Orioles",
+        short_name="CLE @ BAL",
+        start=datetime(2026, 9, 9, 22, 35, tzinfo=UTC),
+        status="in",
+        status_detail="Top 8th",
+        period="8th",
+        clock="",
+        venue="Camden Yards",
+        venue_city="Baltimore",
+        venue_region="MD",
+        indoor=False,
+        away=_side(abbreviation="CLE"),
+        home=_side(abbreviation="BAL", home=True),
+    )
+    nfl = Game(
+        id="nfl",
+        league=LEAGUE_NFL,
+        name="Patriots at Seahawks",
+        short_name="NE @ SEA",
+        start=datetime(2026, 9, 10, 0, 20, tzinfo=UTC),
+        status="in",
+        status_detail="1st",
+        period="1st",
+        clock="0:49",
+        venue="Lumen Field",
+        venue_city="Seattle",
+        venue_region="WA",
+        indoor=False,
+        away=_side(),
+        home=_side(abbreviation="SEA", home=True),
+    )
+    assert [game.short_name for game in sort_games([mlb, nfl])] == ["NE @ SEA", "CLE @ BAL"]
 
 
 def test_todays_board_keeps_live_games_from_next_utc_day() -> None:

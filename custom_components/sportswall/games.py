@@ -188,9 +188,9 @@ def on_todays_board(game: Game, now: datetime) -> bool:
 
 
 def sort_games(games: list[Game]) -> list[Game]:
-    """Live games first, then start time, then finals."""
+    """Live primetime first, then upcoming, then finals."""
 
-    def key(game: Game) -> tuple[int, datetime | float, str]:
+    def key(game: Game) -> tuple[int, float, str]:
         if game.is_live:
             bucket = 0
         elif game.is_final:
@@ -200,6 +200,10 @@ def sort_games(games: list[Game]) -> list[Game]:
         when = game.start or datetime.max.replace(tzinfo=None)
         if when.tzinfo is not None:
             when = when.replace(tzinfo=None)
-        return (bucket, when, game.short_name)
+        timestamp = when.timestamp()
+        # Among live (and finals), the later kickoff is the featured game.
+        if game.is_live or game.is_final:
+            timestamp = -timestamp
+        return (bucket, timestamp, game.short_name)
 
     return sorted(games, key=key)

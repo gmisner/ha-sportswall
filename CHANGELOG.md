@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+
+- Feature the latest live kickoff so primetime football is not buried under afternoon baseball
+
 ## 1.0.1
 
 - Fetch ESPN with a User-Agent it does not block, so today's games load
