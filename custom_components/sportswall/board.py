@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from .artifacts import ARTIFACTS_TITLE, build_artifacts
 from .const import (
     DEFAULT_THEME,
     LEAGUE_LABELS,
@@ -24,7 +25,15 @@ DASHBOARD_MARKDOWN = """{% set b = state_attr('__GAMES_ENTITY__','board') or {} 
 
 {% if b.md_cities %}### {{ b.md_cities }}{% endif %}
 
-{{ b.md_facts }}
+{% if b.md_artifacts %}**{{ b.artifacts_title }}** · {{ b.md_artifacts }}{% endif %}
+{% if b.md_leaders %}
+
+**Leaders** · {{ b.md_leaders }}
+{% endif %}
+{% if b.md_fantasy %}
+
+**Your players** · {{ b.md_fantasy }}
+{% endif %}
 {% if b.md_ticker %}
 
 {{ b.md_ticker }}
@@ -63,16 +72,39 @@ def format_kickoff(start: datetime | None, now: datetime, units: str, time_forma
     return f"{local.strftime('%a')} {clock}"
 
 
+def resolve_featured(
+    games: list[Game],
+    featured_game_id: str | None = None,
+) -> Game | None:
+    """Pinned game if still on the board; otherwise the auto-sorted headliner."""
+    ordered = sort_games(games)
+    if not ordered:
+        return None
+    if featured_game_id:
+        for game in ordered:
+            if game.id == featured_game_id:
+                return game
+    return ordered[0]
+
+
 def build_board(
     games: list[Game],
     now: datetime,
     *,
     units: str = UNIT_IMPERIAL,
     theme: str = DEFAULT_THEME,
+    ui_theme: str | None = None,
+    board_view: str = "game",
     time_format: str = TIME_FOLLOW_UNITS,
     show_logos: bool = True,
     leagues: list[str] | None = None,
     next_game: Game | None = None,
+    featured_game_id: str | None = None,
+    leaders: list[dict[str, str]] | None = None,
+    odds: dict[str, str] | None = None,
+    fantasy_players: list[dict[str, str]] | None = None,
+    fantasy_enabled: bool = False,
+    fantasy_error: str | None = None,
 ) -> dict[str, Any]:
     ordered = sort_games(games)
     live = sum(1 for game in ordered if game.is_live)
@@ -86,13 +118,26 @@ def build_board(
     upcoming = next_game
     if upcoming is None:
         upcoming = next((game for game in ordered if game.status == "pre"), None)
-    featured = cards[0] if cards else None
+    featured_game = resolve_featured(ordered, featured_game_id)
+    featured = None
+    if featured_game is not None:
+        featured = next((card for card in cards if card.get("id") == featured_game.id), None)
+    if featured is not None:
+        featured["leaders"] = list(leaders or [])
+        featured["odds"] = odds if isinstance(odds, dict) and odds.get("line") else None
+        featured["fantasy_players"] = list(fantasy_players or [])
+        featured["pinned"] = bool(
+            featured_game_id and featured_game and featured_game.id == featured_game_id
+        )
     payload = {
         "title": "Sports Wall",
         "clock": format_clock(now, units, time_format),
         "date": f"{now.strftime('%A, %B')} {now.day}",
         "subtitle": subtitle,
         "theme": theme,
+        "ui_theme": ui_theme or theme,
+        "board_view": board_view,
+        "data_source": "live",
         "units": units,
         "show_logos": show_logos,
         "live_count": live,
@@ -100,10 +145,13 @@ def build_board(
         "game_count": len(ordered),
         "leagues": league_names,
         "featured": featured,
+        "featured_game_id": featured_game.id if featured_game else None,
         "games": cards,
         "next_game": _card(upcoming, now, units, time_format, show_logos) if upcoming and not ordered else None,
         "empty": not ordered,
         "has_games": bool(cards),
+        "fantasy_enabled": bool(fantasy_enabled),
+        "fantasy_error": fantasy_error or "",
     }
     payload.update(_markdown_copy(cards, featured, show_logos))
     return payload
@@ -143,17 +191,27 @@ def _card(
         status = format_kickoff(game.start, now, units, time_format)
         status_kind = "pre"
         status_meta = game.status_detail or status
+    situation = (
+        game.situation_text or game.status_detail or status_meta or ""
+    ).strip()
+    possession = game.possession if game.is_live and game.possession in {"away", "home"} else ""
     payload.update(
         {
             "status_label": status,
             "status_kind": status_kind,
             "status_meta": status_meta,
+            "situation": situation,
+            "possession": possession,
             "show_logos": show_logos,
             "weather_line": _weather_line(payload),
             "away_score": _score_text(game.away.score if game.away else None, game.status),
             "home_score": _score_text(game.home.score if game.home else None, game.status),
+            "away_record": (game.away.record if game.away else "") or "",
+            "home_record": (game.home.record if game.home else "") or "",
         }
     )
+    payload["artifacts"] = build_artifacts(payload, units)
+    payload["artifacts_title"] = ARTIFACTS_TITLE
     return payload
 
 
@@ -171,6 +229,10 @@ def _markdown_copy(
             "md_cities": "",
             "md_detail": "",
             "md_facts": "",
+            "md_artifacts": "",
+            "artifacts_title": ARTIFACTS_TITLE,
+            "md_leaders": "",
+            "md_fantasy": "",
             "md_ticker": "",
             "away_logo": "",
             "home_logo": "",
@@ -180,9 +242,8 @@ def _markdown_copy(
     away_ab = str(away.get("abbreviation") or "?")
     home_ab = str(home.get("abbreviation") or "?")
     vs = "@" if featured.get("status_kind") == "pre" else "-"
-    travel = featured.get("travel_label") or ""
     cities = featured.get("cities_route") or ""
-    weather = featured.get("weather_line") or ("Indoor" if featured.get("indoor") else "")
+    artifacts = list(featured.get("artifacts") or [])
     rest = [card for card in cards if card.get("id") != featured.get("id")]
     status = str(featured.get("status_label") or "")
     detail = str(featured.get("status_meta") or "")
@@ -195,6 +256,11 @@ def _markdown_copy(
         status_bits.append(league)
     if network and network != "TBD":
         status_bits.append(network)
+    artifacts_body = " · ".join(
+        f"{item.get('label')}: {item.get('value')}"
+        for item in artifacts
+        if item.get("value")
+    )
     return {
         "md_status": " · ".join(status_bits),
         "md_league": " · ".join(bit for bit in (league, network) if bit),
@@ -204,15 +270,18 @@ def _markdown_copy(
         ),
         "md_cities": cities,
         "md_detail": detail or status,
-        "md_facts": " · ".join(
-            bit
-            for bit in (
-                network if network and network != "TBD" else "",
-                weather,
-                str(featured.get("venue") or featured.get("venue_label") or ""),
-                travel,
-            )
-            if bit
+        "md_facts": artifacts_body,
+        "md_artifacts": artifacts_body,
+        "artifacts_title": featured.get("artifacts_title") or ARTIFACTS_TITLE,
+        "md_leaders": "  ·  ".join(
+            str(row.get("line") or "")
+            for row in (featured.get("leaders") or [])
+            if row.get("line")
+        ),
+        "md_fantasy": "  ·  ".join(
+            str(row.get("line") or "")
+            for row in (featured.get("fantasy_players") or [])
+            if row.get("line")
         ),
         "md_ticker": "  ·  ".join(_ticker_line(card) for card in rest[:8]),
         "away_logo": str(away.get("logo_url") or "") if show_logos else "",
@@ -237,7 +306,7 @@ def _ticker_line(card: dict[str, Any]) -> str:
 
 def _weather_line(payload: dict[str, Any]) -> str:
     bits = [payload.get("temp_label") or "", payload.get("weather_text") or ""]
-    return " ".join(bit for bit in bits if bit).strip()
+    return " · ".join(bit for bit in bits if bit).strip()
 
 
 def _score_text(score: int | None, status: str) -> str:

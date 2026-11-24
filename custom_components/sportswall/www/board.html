@@ -2,240 +2,1903 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Sports Wall</title>
   <style>
     :root {
-      --bg: #070a12;
-      --bg2: #0c1220;
-      --card: #121a2c;
-      --card-live: #18243e;
-      --ink: #f6f8fc;
-      --muted: #94a2bc;
-      --accent: #ffc448;
-      --live: #ff4652;
-      --line: #283654;
-      --chip: #1c2840;
-      --glass: linear-gradient(135deg, rgba(16,24,38,.92), rgba(8,17,31,.86));
-    }
-    html, body { height: 100%; margin: 0; }
-    body {
-      color: var(--ink);
       font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-      background:
-        radial-gradient(1200px 600px at 10% -10%, #1a2744 0%, transparent 60%),
-        radial-gradient(900px 500px at 110% 110%, #152036 0%, transparent 55%),
-        var(--bg);
+      color: #f5f8ff;
+      background: #070e18;
+      --u: clamp(8px, 1.2vmin, 14px);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    html { height: 100dvh; }
+    body {
+      min-height: 100%;
+      min-height: 100dvh;
       overflow: hidden;
     }
-    body.broadcast { --bg:#08080a; --card:#16161a; --card-live:#201618; --accent:#ffd60a; --live:#e61c28; --muted:#a8a8b0; --line:#303036; --chip:#242428; --bg2:#101014; }
-    body.night { --bg:#04060a; --card:#0c1018; --card-live:#101624; --ink:#a8b4c8; --muted:#58667c; --accent:#8caa78; --live:#b44646; --line:#1c2430; --bg2:#080c14; }
-    body.daylight { --bg:#e8ecf2; --card:#fff; --card-live:#fff8f0; --ink:#121824; --muted:#5a667a; --accent:#c45a1c; --live:#c4242a; --line:#d6dce6; --chip:#ecf0f6; --bg2:#f4f6fa; }
-    header {
-      display: flex; justify-content: space-between; align-items: flex-end;
-      padding: 16px 28px 12px; border-bottom: 4px solid var(--accent);
+    button, select { font: inherit; }
+    button { cursor: pointer; }
+    .app {
+      height: 100%;
+      height: 100dvh;
+      max-height: 100dvh;
+      padding: clamp(8px, 1.2vw, 18px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 85% 0%, var(--glow), transparent 38%),
+        var(--bg);
+      color: var(--text);
+      --bg: #070e18;
+      --surface: #101c2b;
+      --surface2: #172537;
+      --text: #f5f8ff;
+      --muted: #91a4bb;
+      --line: #2b3b4d;
+      --accent: #45b6ff;
+      --glow: #102a46;
+      --hero-a: #1b6a4c;
+      --hero-b: #0b2437;
+      --live: #ff4652;
     }
-    .brand { font-size: 48px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-    .sub { color: var(--muted); margin-top: 4px; font-size: 22px; }
-    .clock { font-size: 64px; font-weight: 800; text-align: right; line-height: 1; }
-    .date { color: var(--muted); text-align: right; margin-top: 6px; font-size: 22px; }
-    main { padding: 16px 20px 0; height: calc(100vh - 196px); }
-    .empty { padding: 80px 20px; font-size: 48px; }
-    .feature {
-      height: calc(100% - 8px);
-      background: var(--card);
-      border-radius: 20px;
-      padding: 16px 22px 14px;
+    .app[data-theme="light"] {
+      --bg: #e9eef5; --surface: #fff; --surface2: #f1f5f9; --text: #17263b;
+      --muted: #607087; --line: #d6dfe9; --accent: #1867db; --glow: #d4e3f9;
+      --hero-a: #3b82c4; --hero-b: #1e3a5f;
+    }
+    .app[data-theme="daylight"] {
+      --bg: #e9eef5; --surface: #fff; --surface2: #f1f5f9; --text: #17263b;
+      --muted: #607087; --line: #d6dfe9; --accent: #1867db; --glow: #d4e3f9;
+      --hero-a: #3b82c4; --hero-b: #1e3a5f;
+    }
+    .app[data-theme="team"] {
+      --bg: #0b1222; --surface: #151e31; --surface2: #1e2940; --text: #fff;
+      --muted: #bac6d6; --line: #3b455a; --accent: var(--team-accent, #ffcb05);
+      --glow: var(--team-glow, #302b12);
+      --hero-a: var(--team-home, #1b6a4c); --hero-b: var(--team-away, #0b2437);
+    }
+    .app[data-theme="stadium"] {
+      --bg: #061710; --surface: #10251e; --surface2: #183429; --text: #f1fff7;
+      --muted: #a2c4b0; --line: #315343; --accent: #59d9a0; --glow: #184a31;
+      --hero-a: #1b6a4c; --hero-b: #0a2a1c;
+    }
+    .app[data-theme="arena"] {
+      --bg: #070a12; --surface: #121a2c; --surface2: #0c1220; --text: #f6f8fc;
+      --muted: #94a2bc; --line: #283654; --accent: #ffc448; --glow: #1a2744;
+      --hero-a: #243656; --hero-b: #0c1220;
+    }
+    .app[data-theme="broadcast"] {
+      --bg: #08080a; --surface: #16161a; --surface2: #101014; --text: #f5f5f7;
+      --muted: #a8a8b0; --line: #303036; --accent: #ffd60a; --glow: #201618;
+      --hero-a: #3a1818; --hero-b: #101014; --live: #e61c28;
+    }
+    .app[data-theme="night"] {
+      --bg: #04060a; --surface: #0c1018; --surface2: #080c14; --text: #a8b4c8;
+      --muted: #58667c; --line: #1c2430; --accent: #8caa78; --glow: #101820;
+      --hero-a: #1a3020; --hero-b: #080c14;
+    }
+
+    .top {
+      flex: 0 0 auto;
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; margin-bottom: 8px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .brand-icon {
+      background: var(--accent); color: #06121e;
+      padding: 8px 11px; border-radius: 12px; font-size: 18px; font-weight: 900;
+      flex: 0 0 auto;
+    }
+    .brand h1 {
+      margin: 0; font-size: clamp(1.1rem, 2vw, 1.75rem);
+      letter-spacing: -.04em; line-height: 1.1;
+    }
+    .eyebrow {
+      font-size: 10px; letter-spacing: .16em; color: var(--muted);
+      text-transform: uppercase; font-weight: 800;
+    }
+    .controls {
+      display: flex; align-items: center; gap: 10px;
+      flex-wrap: nowrap; justify-content: flex-end;
+    }
+    .clock-block { text-align: right; }
+    .clock { font-size: clamp(1.2rem, 3vmin, 2.1rem); font-weight: 800; line-height: 1; }
+    .date { color: var(--muted); font-size: clamp(0.7rem, 1.3vmin, 0.9rem); margin-top: 2px; }
+    .mode-pill {
+      background: var(--surface); color: var(--muted);
+      border: 1px solid var(--line); border-radius: 999px;
+      padding: 7px 12px; font-size: clamp(0.7rem, 1.2vmin, 0.85rem);
+      font-weight: 800; letter-spacing: .04em; white-space: nowrap;
+    }
+    .menu-btn {
+      width: clamp(46px, 5.5vmin, 58px);
+      height: clamp(46px, 5.5vmin, 58px);
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--surface), var(--surface2));
+      color: var(--text);
+      display: grid; place-items: center; gap: 5px;
+      padding: 0;
+      flex: 0 0 auto;
+      transition: border-color .18s ease, background .18s ease, transform .18s ease;
+    }
+    .menu-btn:hover, .menu-btn:focus {
+      border-color: var(--accent); outline: none;
+      transform: translateY(-1px);
+    }
+    .menu-btn span {
+      display: block; width: 18px; height: 2px;
+      background: currentColor; border-radius: 2px;
+      transition: transform .2s ease, opacity .2s ease;
+      transform-origin: center;
+    }
+    .app.menu-open .menu-btn span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .app.menu-open .menu-btn span:nth-child(2) { opacity: 0; }
+    .app.menu-open .menu-btn span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    .tag {
+      color: var(--accent); font-weight: 800; font-size: 11px;
+      border: 1px solid var(--accent); border-radius: 7px; padding: 4px 7px;
+      display: inline-block;
+    }
+    .tag.live { color: #fff; background: var(--live); border-color: var(--live); }
+
+    .menu-overlay {
+      position: fixed; inset: 0; z-index: 40;
+      display: flex; align-items: stretch; justify-content: flex-end;
+      background: rgba(3, 8, 16, .0);
+      backdrop-filter: blur(0);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s ease, background .22s ease, backdrop-filter .22s ease;
+    }
+    .menu-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+      background: rgba(3, 8, 16, .58);
+      backdrop-filter: blur(6px);
+    }
+    .menu-panel {
+      width: min(440px, 94vw);
+      height: 100%;
+      max-height: 100%;
+      max-height: 100dvh;
+      background:
+        radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 42%),
+        linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+      border-left: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line));
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: -24px 0 80px rgba(0,0,0,.45);
+      transform: translateX(18px);
+      transition: transform .24s cubic-bezier(.2,.8,.2,1);
+    }
+    .menu-overlay.open .menu-panel { transform: translateX(0); }
+    .menu-head {
+      flex: 0 0 auto;
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+      padding: 20px 20px 12px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+    }
+    .menu-scroll {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      padding: 16px 20px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scroll-behavior: smooth;
+      /* Fire TV / Silk: make the scroll region clearer to grab. */
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent) transparent;
+    }
+    .menu-scroll::-webkit-scrollbar { width: 8px; }
+    .menu-scroll::-webkit-scrollbar-thumb {
+      background: color-mix(in srgb, var(--accent) 70%, transparent);
+      border-radius: 999px;
+    }
+    .menu-kicker {
+      color: var(--muted); font-size: 11px; font-weight: 800;
+      letter-spacing: .16em; text-transform: uppercase; margin-bottom: 6px;
+    }
+    .menu-head h2 {
+      margin: 0; font-size: clamp(1.35rem, 2.6vmin, 1.85rem);
+      letter-spacing: -.03em; line-height: 1.1;
+    }
+    .menu-close {
+      width: 44px; height: 44px; border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--surface2); color: var(--text);
+      font-size: 1.25rem; font-weight: 700; line-height: 1;
+      display: grid; place-items: center; flex: 0 0 auto;
+      transition: border-color .15s ease, background .15s ease;
+    }
+    .menu-close:hover, .menu-close:focus {
+      border-color: var(--accent); outline: none; background: var(--surface);
+    }
+    .menu-section {
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--surface2) 78%, transparent);
+      border-radius: 18px;
+      padding: 14px;
+    }
+    .menu-section-label {
+      color: var(--muted); font-size: 11px; font-weight: 800;
+      letter-spacing: .14em; text-transform: uppercase; margin-bottom: 10px;
+    }
+    .menu-tabs {
       display: grid;
-      grid-template-rows: auto 1fr auto;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .menu-tabs button {
+      background: var(--bg); color: var(--text);
+      border: 1px solid var(--line); border-radius: 14px;
+      padding: 14px 12px;
+      font-size: clamp(0.85rem, 1.5vmin, 1.05rem);
+      font-weight: 800; letter-spacing: -.01em;
+      text-align: left;
+      min-height: 56px;
+      transition: border-color .15s ease, background .15s ease, color .15s ease, transform .15s ease;
+    }
+    .menu-tabs button small {
+      display: block; margin-top: 4px;
+      color: var(--muted); font-size: 0.72em; font-weight: 700;
+      letter-spacing: .04em; text-transform: uppercase;
+    }
+    .menu-tabs button:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
+    .menu-tabs button:focus {
+      outline: 2px solid var(--accent); outline-offset: 2px;
+    }
+    .menu-tabs button.active {
+      background: color-mix(in srgb, var(--accent) 18%, var(--bg));
+      color: var(--text);
+      border-color: var(--accent);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+    }
+    .menu-tabs button.active small { color: var(--accent); }
+    .menu-field {
+      width: 100%;
+      appearance: none;
+      background:
+        linear-gradient(45deg, transparent 50%, var(--muted) 50%) right 14px top 50% / 6px 6px no-repeat,
+        linear-gradient(135deg, var(--muted) 50%, transparent 50%) right 18px top 50% / 6px 6px no-repeat,
+        var(--bg);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 40px 14px 14px;
+      font-size: clamp(0.9rem, 1.55vmin, 1.1rem);
+      font-weight: 700;
+      min-height: 52px;
+    }
+    .menu-field:focus {
+      outline: 2px solid var(--accent); outline-offset: 2px;
+      border-color: var(--accent);
+    }
+    /* Fire TV: Up/Down/Pin own the remote; list rows are a visual cursor, not 70 focus stops. */
+    .game-nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.35fr;
+      gap: 8px;
+      margin-bottom: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding: 4px 0 8px;
+      background: linear-gradient(180deg, var(--surface) 70%, transparent);
+    }
+    .game-nav-btn {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: clamp(0.95rem, 1.7vmin, 1.2rem);
+      font-weight: 900;
+      min-height: 56px;
+      letter-spacing: .02em;
+      transition: border-color .15s ease, background .15s ease, color .15s ease;
+    }
+    .game-nav-btn:hover, .game-nav-btn:focus {
+      border-color: var(--accent);
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+      background: color-mix(in srgb, var(--accent) 16%, var(--bg));
+    }
+    .game-nav-btn.pin {
+      background: color-mix(in srgb, var(--accent) 22%, var(--bg));
+      border-color: var(--accent);
+    }
+    .game-nav-btn:disabled {
+      opacity: .4;
+      outline: none;
+    }
+    .game-cursor-label {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin: 0 0 8px;
+      min-height: 1.2em;
+    }
+    .game-picker {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: visible;
+    }
+    .game-pick {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 14px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: clamp(0.9rem, 1.55vmin, 1.12rem);
+      font-weight: 700;
+      line-height: 1.25;
+      min-height: 58px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px 12px;
+      align-items: center;
+      transition: border-color .15s ease, background .15s ease;
+    }
+    .game-pick.cursor {
+      border-color: var(--accent);
+      outline: 3px solid var(--accent);
+      outline-offset: 1px;
+      background: color-mix(in srgb, var(--accent) 14%, var(--bg));
+    }
+    .game-pick-main { min-width: 0; }
+    .game-pick-score {
+      font-size: 1.05em;
+      font-weight: 900;
+      letter-spacing: -.02em;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .game-pick-score.muted { color: var(--muted); font-weight: 800; font-size: 0.85em; }
+    .game-pick small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.78em;
+      font-weight: 700;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
+    .game-pick:hover, .game-pick:focus {
+      border-color: var(--accent);
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      background: color-mix(in srgb, var(--accent) 12%, var(--bg));
+    }
+    .game-pick.selected {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 18%, var(--bg));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+    }
+    .game-pick.selected small { color: var(--accent); }
+    .game-picker-empty {
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 8px 2px;
+    }
+    .game-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .game-filter {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--bg);
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 8px 12px;
+      min-height: 36px;
+    }
+    .game-filter:focus, .game-filter:hover {
+      border-color: var(--accent);
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      color: var(--text);
+    }
+    .game-filter.active {
+      border-color: var(--accent);
+      color: var(--text);
+      background: color-mix(in srgb, var(--accent) 18%, var(--bg));
+    }
+    .game-search {
+      width: 100%;
+      margin-bottom: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: clamp(0.9rem, 1.5vmin, 1.05rem);
+      font-weight: 700;
+      padding: 12px 14px;
+      min-height: 48px;
+    }
+    .game-search:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-color: var(--accent);
+    }
+    .menu-actions { display: grid; gap: 10px; padding-top: 4px; }
+    .menu-action {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 15px 16px;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 16%, var(--surface)), var(--surface2));
+      color: var(--text);
+      font-size: clamp(0.95rem, 1.6vmin, 1.15rem);
+      font-weight: 800;
+      letter-spacing: .02em;
+      transition: border-color .15s ease, transform .15s ease;
+    }
+    .menu-action:hover, .menu-action:focus {
+      border-color: var(--accent); outline: none; transform: translateY(-1px);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .menu-overlay, .menu-panel, .menu-btn, .menu-btn span { transition: none; }
+    }
+    .stage {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .hidden { display: none !important; }
+
+    .focus-layout {
+      height: 100%;
+      min-height: 0;
+      display: grid;
+      /* ~2/3 hero, ~1/3 Art'ifacts, then compact intel strip. */
+      grid-template-rows: minmax(0, 2fr) minmax(0, 1fr) auto;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .hero {
+      position: relative; overflow: hidden;
+      border: 1px solid var(--line); border-radius: 16px;
+      min-height: 0;
+      height: 100%;
+      display: flex; flex-direction: column; justify-content: space-between;
+      background:
+        linear-gradient(115deg, rgba(5,14,26,.92), rgba(5,14,26,.55) 48%, rgba(5,14,26,.88)),
+        radial-gradient(ellipse at 50% 100%, var(--hero-a) 0%, var(--hero-b) 42%, #071321 80%);
+      color: #f5f8ff;
+    }
+    .app[data-theme="light"] .hero, .app[data-theme="daylight"] .hero { color: #fff; }
+    .hero::after {
+      content: ""; position: absolute; inset: auto 0 0; height: 28%;
+      background:
+        repeating-linear-gradient(90deg, transparent 0 9%, rgba(255,255,255,.035) 9.1% 9.2%),
+        linear-gradient(0deg, rgba(29,110,67,.18), transparent);
+      pointer-events: none;
+    }
+    .hero-top, .hero-center { position: relative; z-index: 1; }
+    .hero-top {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 14px; gap: 8px; flex-wrap: wrap;
+      flex: 0 0 auto;
+    }
+    .hero-center {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 1fr;
+      align-items: center; gap: 10px;
+      padding: 4px 2.5vw 12px;
+    }
+    .team {
+      text-align: center;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+    .team-logo {
+      width: clamp(40px, 6vmin, 78px);
+      height: clamp(40px, 6vmin, 78px);
+      margin: 0 auto;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      overflow: hidden;
+      background: rgba(0,0,0,.28);
+      font-size: clamp(0.95rem, 2.2vmin, 1.6rem);
+      font-weight: 900;
+      letter-spacing: -.06em;
+      text-shadow: 0 8px 22px #0006;
+    }
+    .team-logo img { width: 78%; height: 78%; object-fit: contain; }
+    .team-name {
+      font-size: clamp(0.8rem, 1.5vw, 1.2rem);
+      font-weight: 900; letter-spacing: -.03em; margin-top: 4px;
+      max-width: 100%;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .team-record { font-size: 11px; color: #b3c5d7; margin-top: 1px; }
+    .team.has-ball .team-logo {
+      box-shadow: 0 0 0 2px #f0c14a, 0 0 14px #f0c14a55;
+    }
+    .possession-mark {
+      margin-top: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #f0c14a;
+      color: #1a1404;
+      font-size: clamp(0.55rem, 0.95vw, 0.72rem);
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+    .possession-pip {
+      width: 0;
+      height: 0;
+      margin: 3px auto 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 8px solid #f0c14a;
+    }
+    .scoreline .score-side {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      min-width: 1.1em;
+    }
+    .scoreline .score-side.has-ball .possession-pip { visibility: visible; }
+    .scoreline .possession-pip { visibility: hidden; }
+    .team-foot {
+      margin-top: 8px;
+      padding-top: 7px;
+      border-top: 1px solid rgba(255,255,255,.14);
+      width: min(100%, 220px);
+      color: #d1deea;
+      font-size: clamp(0.7rem, 1.15vw, 0.9rem);
+      font-weight: 700;
+      line-height: 1.25;
+      text-align: center;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .team-foot .foot-label {
+      display: block;
+      color: #91a4bb;
+      font-size: 0.78em;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+    .score {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+    }
+    .scoreline {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: .08em;
+      font-size: clamp(2.3rem, 5.8vw, 5rem);
+      line-height: 1; font-weight: 900; letter-spacing: -.07em; white-space: nowrap;
+    }
+    .scoreline span.sep {
+      font-size: .55em; color: #7992a9; padding: .28em .05em 0;
+      align-self: flex-start;
+    }
+    .game-clock {
+      margin: 4px auto 0; padding: 5px 10px;
+      background: #091827c9; border: 1px solid #526679;
+      display: inline-block; border-radius: 999px;
+      font-size: clamp(0.7rem, 1.1vw, 0.9rem); font-weight: 800;
+    }
+    .subline {
+      margin-top: 4px; color: #c5d3e0;
+      font-size: clamp(0.65rem, 1.1vw, 0.85rem);
+      max-width: 100%;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .matchup-line {
+      margin-top: 8px;
+      padding-top: 7px;
+      border-top: 1px solid rgba(255,255,255,.14);
+      color: #f0f5fb;
+      font-size: clamp(0.8rem, 1.4vw, 1.1rem);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      text-align: center;
+      max-width: 100%;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .odds-line {
+      margin-top: 5px;
+      color: #9eb4c8;
+      font-size: clamp(0.62rem, 1.05vw, 0.82rem);
+      font-weight: 700;
+      letter-spacing: .01em;
+      text-align: center;
+      max-width: 100%;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .odds-line .odds-provider {
+      color: #7f96ab;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: .88em;
+    }
+
+    .artifacts {
+      min-width: 0;
+      min-height: 0;
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      align-content: stretch;
+      gap: 8px;
+      overflow: hidden;
+    }
+    .artifacts-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .artifacts-logo {
+      width: clamp(56px, 8.5vmin, 96px);
+      height: clamp(56px, 8.5vmin, 96px);
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: center center;
+      flex: 0 0 auto;
+      border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line));
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--bg) 80%, transparent);
+      background: #05070c;
+    }
+    .artifacts-title {
+      margin: 0;
+      color: var(--accent); font-weight: 800; letter-spacing: .1em;
+      text-transform: uppercase; font-size: clamp(0.85rem, 1.7vmin, 1.2rem);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .artifacts-carousel {
+      min-height: 0;
+      height: 100%;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      gap: 6px;
+    }
+    .artifacts-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-auto-rows: minmax(0, 1fr);
+      gap: 6px;
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
+      align-content: stretch;
+    }
+    .artifacts-grid .card {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border-width: 1px;
+      border-color: color-mix(in srgb, var(--line) 70%, transparent);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      min-height: 0;
+    }
+    .artifacts-dots {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      min-height: 12px;
+    }
+    .artifacts-dots[hidden] { display: none; }
+    .artifacts-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 0;
+      padding: 0;
+      background: color-mix(in srgb, var(--muted) 55%, transparent);
+      opacity: 0.55;
+    }
+    .artifacts-dot.active {
+      background: var(--accent);
+      opacity: 1;
+      transform: scale(1.15);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 10px;
     }
-    .feature.live { background: var(--card-live); }
-    .status-row { display: flex; justify-content: center; align-items: center; gap: 16px; }
+    .card {
+      border: 1px solid var(--line); background: var(--surface);
+      border-radius: 14px; padding: 12px 14px; min-width: 0;
+    }
+    .card .label {
+      color: var(--muted); font-size: 11px; font-weight: 800;
+      letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px;
+    }
+    .card .value {
+      font-size: clamp(0.85rem, 1.5vw, 1.25rem);
+      font-weight: 800; letter-spacing: -.03em;
+      line-height: 1.25;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      white-space: normal;
+    }
+    .artifacts-grid .card .label {
+      font-size: 10px;
+      margin-bottom: 4px;
+      text-align: center;
+      width: 100%;
+    }
+    .artifacts-grid .card .value {
+      font-size: clamp(0.78rem, 1.35vw, 1.1rem);
+      -webkit-line-clamp: 2;
+      text-align: center;
+      width: 100%;
+    }
+    .card .note { color: var(--muted); font-size: 12px; margin-top: 6px; }
+    .team-coach {
+      margin-top: 2px;
+      font-size: clamp(0.65rem, 1.1vmin, 0.85rem);
+      color: #c5d3e0;
+      font-weight: 700;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .lower {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr;
+      gap: 8px;
+      margin: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .lower .card {
+      padding: 8px 10px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .panel h2 { margin: 0 0 4px; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+    .stat {
+      display: flex; justify-content: space-between; gap: 8px;
+      margin: 3px 0; color: var(--muted);
+      font-size: clamp(0.7rem, 1.15vw, 0.85rem);
+      overflow: hidden;
+    }
+    .stat strong {
+      color: var(--text); text-align: right;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      max-width: 65%;
+    }
+    .lower .small { display: none; }
     .pill {
-      border-radius: 999px; padding: 10px 20px; font-weight: 800; letter-spacing: .06em;
-      background: var(--chip); font-size: 22px;
+      display: inline-block; background: var(--surface2);
+      padding: 6px 10px; border-radius: 8px; color: var(--accent);
+      font-weight: 800; font-size: 12px;
     }
-    .pill.live { background: var(--live); color: #fff; animation: pulse 1.6s ease-in-out infinite; }
-    @keyframes pulse { 50% { opacity: .72; } }
-    .league { color: var(--muted); font-weight: 700; font-size: 24px; }
-    .matchup {
-      display: grid; grid-template-columns: 1fr 120px 1fr; align-items: center; gap: 16px;
+    .muted { color: var(--muted); }
+    .small { font-size: 12px; color: var(--muted); }
+    .fantasy-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
     }
-    .team-card {
-      background: var(--bg2); border-radius: 18px; padding: 16px 18px;
-      display: flex; flex-direction: column; align-items: center; text-align: center;
+    .fantasy-score { font-size: clamp(1.4rem, 2.5vw, 2.4rem); font-weight: 900; }
+    .bigpanel {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
     }
-    .logo {
-      width: 110px; height: 110px; border-radius: 50%; display: grid; place-items: center; overflow: hidden;
+    .bigpanel .card { min-height: 160px; text-align: left; }
+    button.card {
+      color: inherit; width: 100%;
+      transition: border-color .15s ease, transform .15s ease;
     }
-    .logo img { width: 78%; height: 78%; object-fit: contain; }
-    .city { color: var(--muted); margin-top: 8px; font-size: 22px; }
-    .name { font-size: 36px; font-weight: 800; }
-    .abbr { font-size: 72px; font-weight: 800; line-height: 1; margin-top: 6px; }
-    .score { font-size: 100px; font-weight: 800; line-height: 1; }
-    .center { text-align: center; }
-    .vs {
-      width: 88px; height: 88px; margin: 0 auto; border-radius: 50%;
-      display: grid; place-items: center; background: var(--bg); color: var(--muted);
-      font-weight: 800; font-size: 28px;
+    button.card:focus, button.card.selected { border-color: var(--accent); outline: none; }
+    button.card:hover { transform: translateY(-1px); }
+    .footer {
+      flex: 0 0 auto;
+      display: flex; justify-content: space-between; gap: 12px;
+      color: var(--muted); font-size: 10px; margin-top: 6px;
     }
-    .detail { margin-top: 10px; font-weight: 700; font-size: 24px; }
-    .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-    .fact { background: var(--chip); border-radius: 14px; padding: 12px 14px; }
-    .fact small { display: block; color: var(--accent); font-weight: 800; letter-spacing: .04em; font-size: 16px; }
-    .fact b { display: block; margin-top: 4px; font-size: 22px; }
-    .ticker-shell {
-      position: fixed; left: 0; right: 0; bottom: 0; height: 112px;
-      display: grid; grid-template-columns: 140px 1fr;
-      background: var(--glass); border-top: 4px solid var(--accent); overflow: hidden;
+    .empty {
+      padding: 48px 20px; text-align: center;
+      font-size: clamp(1.2rem, 3vmin, 2rem); color: var(--muted);
     }
-    .league-label {
-      display: grid; place-items: center; font-weight: 800; letter-spacing: .08em; font-size: 22px;
-      border-right: 1px solid var(--line); background: var(--chip);
+    .stage.scrollable { overflow: auto; }
+    .ambient-wrap { height: 100%; min-height: 0; }
+    .ambient-wrap .hero { height: 100%; }
+    @media (max-height: 720px) {
+      .lower { display: none; }
+      .focus-layout { grid-template-rows: minmax(0, 2fr) minmax(0, 1fr); }
+      .brand-icon, .eyebrow, .date, .mode-pill { display: none; }
+      .footer { display: none; }
     }
-    .ticker-window { overflow: hidden; position: relative; }
-    .ticker-track {
-      display: flex; height: 100%; width: max-content;
-      animation: ticker var(--ticker-duration, 48s) linear infinite;
-    }
-    .ticker-set { display: flex; height: 100%; }
-    .ticker-game {
-      width: 340px; min-width: 340px; display: flex; align-items: center; justify-content: center;
-      gap: 10px; padding: 0 16px; border-right: 1px solid var(--line); font-weight: 800; font-size: 22px;
-    }
-    .ticker-game img, .ticker-fallback {
-      width: 44px; height: 44px; border-radius: 50%; object-fit: contain;
-    }
-    .ticker-fallback { display: grid; place-items: center; font-size: 12px; background: var(--chip); }
-    .live-status { color: var(--live); font-size: 18px; display: flex; align-items: center; gap: 6px; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--live); }
-    .kickoff, .final-status { font-size: 18px; color: var(--muted); }
-    @keyframes ticker { from { transform: translate3d(0,0,0); } to { transform: translate3d(-50%,0,0); } }
   </style>
 </head>
 <body>
-  <header>
-    <div>
-      <div class="brand">Sports Wall</div>
-      <div class="sub" id="subtitle">Loading today's games…</div>
+  <div class="app" id="app" data-theme="night">
+    <header class="top">
+      <div class="brand">
+        <div class="brand-icon">↗</div>
+        <div>
+          <div class="eyebrow">Home Assistant · Live</div>
+          <h1>Sports Wall <span class="tag" id="sourceTag">LIVE</span></h1>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="clock-block">
+          <div class="clock" id="clock">—</div>
+          <div class="date" id="date"></div>
+        </div>
+        <div class="mode-pill" id="modePill">Game Focus</div>
+        <button class="menu-btn" id="menuOpen" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="menuOverlay">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+    <main class="stage" id="stage"></main>
+    <footer class="footer">
+      <span id="footerLeft">SPORTS WALL</span>
+      <span id="footerRight">Waiting for board.json</span>
+    </footer>
+    <div class="menu-overlay" id="menuOverlay" aria-hidden="true">
+      <aside class="menu-panel" role="dialog" aria-modal="true" aria-label="Sports Wall menu">
+        <div class="menu-head">
+          <div>
+            <div class="menu-kicker">Sports Wall</div>
+            <h2>Controls</h2>
+          </div>
+          <button class="menu-close" id="menuClose" type="button" aria-label="Close menu">✕</button>
+        </div>
+        <div class="menu-scroll" id="menuScroll">
+          <section class="menu-section" id="featuredGameSection">
+            <div class="menu-section-label">Featured game</div>
+            <div class="game-filters" id="gameFilters" role="toolbar" aria-label="Filter games"></div>
+            <div class="game-nav" id="gameNav" role="group" aria-label="Browse games with remote">
+              <button type="button" class="game-nav-btn" id="gameNavUp" aria-label="Previous game">▲ Up</button>
+              <button type="button" class="game-nav-btn" id="gameNavDown" aria-label="Next game">▼ Down</button>
+              <button type="button" class="game-nav-btn pin" id="gameNavPin" aria-label="Pin highlighted game">✓ Pin</button>
+            </div>
+            <div class="game-cursor-label" id="gameCursorLabel" aria-live="polite"></div>
+            <div class="game-picker" id="gamePicker" role="listbox" aria-label="Select featured game"></div>
+            <!-- After the list so Fire TV remotes hit game buttons before the search field. -->
+            <input class="game-search" id="gameSearch" type="search" enterkeyhint="search" placeholder="Search teams (e.g. Ohio)" aria-label="Search games" autocomplete="off" tabindex="-1" />
+          </section>
+          <section class="menu-section">
+            <div class="menu-section-label">Display mode</div>
+            <div class="menu-tabs" id="tabs">
+              <button type="button" data-tab="game" class="active">Game Focus<small>Featured matchup</small></button>
+              <button type="button" data-tab="multi">Multiview<small>All games</small></button>
+              <button type="button" data-tab="fantasy">Fantasy HQ<small>Your roster</small></button>
+              <button type="button" data-tab="ambient">Ambient<small>Minimal board</small></button>
+            </div>
+          </section>
+          <section class="menu-section">
+            <div class="menu-section-label">Theme</div>
+            <select class="menu-field" id="themeSelect" aria-label="Select theme">
+              <option value="night">Midnight</option>
+              <option value="daylight">Clean Light</option>
+              <option value="team">Team Colors</option>
+              <option value="stadium">Stadium</option>
+              <option value="arena">Arena</option>
+              <option value="broadcast">Broadcast</option>
+            </select>
+          </section>
+          <div class="menu-actions">
+            <button class="menu-action" id="keepAwakeBtn" type="button">Keep screen awake · On</button>
+            <button class="menu-action" id="fullscreen" type="button">Enter fullscreen</button>
+          </div>
+        </div>
+      </aside>
     </div>
-    <div>
-      <div class="clock" id="clock"></div>
-      <div class="date" id="date"></div>
-    </div>
-  </header>
-  <main id="board"></main>
-  <div class="ticker-shell" id="ticker"></div>
+    <video id="keepAwakeVideo" muted playsinline loop
+      aria-hidden="true"
+      style="position:fixed;width:2px;height:2px;opacity:0;pointer-events:none;left:0;bottom:0"></video>
+  </div>
   <script>
+    const FEATURED_API = "/api/sportswall/featured";
+    const THEME_API = "/api/sportswall/theme";
+    const MODE_API = "/api/sportswall/mode";
+    const VIEWS = ["game", "multi", "fantasy", "ambient"];
+    const VIEW_LABELS = {
+      game: "Game Focus",
+      multi: "Multiview",
+      fantasy: "Fantasy HQ",
+      ambient: "Ambient",
+    };
+    let latest = null;
+    let tab = "game";
+    let busy = false;
+    let gamePickerSig = "";
+    let gameFilterSig = "";
+    let gameFilter = "live";
+    let gameSearch = "";
+    let pickerCursor = 0;
+    let keepAwake = localStorage.getItem("sportswall-keep-awake") !== "0";
+    let wakeLock = null;
+    let keepAwakeTimer = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    function isMenuOpen() {
+      return !!($("menuOverlay") && $("menuOverlay").classList.contains("open"));
+    }
+
+    function pickerButtons() {
+      const picker = $("gamePicker");
+      return picker ? Array.from(picker.querySelectorAll(".game-pick")) : [];
+    }
+
+    function syncPickerCursor(opts) {
+      const focusNav = !!(opts && opts.focusNav);
+      const picks = pickerButtons();
+      if (!picks.length) {
+        pickerCursor = 0;
+        if ($("gameCursorLabel")) $("gameCursorLabel").textContent = "";
+        ["gameNavUp", "gameNavDown", "gameNavPin"].forEach((id) => {
+          if ($(id)) $(id).disabled = true;
+        });
+        return;
+      }
+      pickerCursor = Math.max(0, Math.min(picks.length - 1, pickerCursor));
+      picks.forEach((btn, i) => {
+        btn.classList.toggle("cursor", i === pickerCursor);
+        btn.setAttribute("aria-current", i === pickerCursor ? "true" : "false");
+      });
+      const cur = picks[pickerCursor];
+      const main = cur.querySelector(".game-pick-main");
+      const label = main ? main.childNodes[0] && main.childNodes[0].textContent : (cur.textContent || "");
+      const score = cur.querySelector(".game-pick-score");
+      if ($("gameCursorLabel")) {
+        $("gameCursorLabel").textContent = `${pickerCursor + 1} / ${picks.length} · ${String(label).trim()}${score ? " · " + score.textContent : ""}`;
+      }
+      ["gameNavUp", "gameNavDown", "gameNavPin"].forEach((id) => {
+        if ($(id)) $(id).disabled = false;
+      });
+      if ($("gameNavUp")) $("gameNavUp").disabled = pickerCursor <= 0;
+      if ($("gameNavDown")) $("gameNavDown").disabled = pickerCursor >= picks.length - 1;
+      scrollMenuIntoView(cur);
+      const active = document.activeElement;
+      const activeDisabled = !!(active && active.classList && active.classList.contains("game-nav-btn") && active.disabled);
+      if (focusNav || activeDisabled) {
+        if ($("gameNavDown") && !$("gameNavDown").disabled) $("gameNavDown").focus();
+        else if ($("gameNavUp") && !$("gameNavUp").disabled) $("gameNavUp").focus();
+        else if ($("gameNavPin")) $("gameNavPin").focus();
+      }
+    }
+
+    function movePicker(delta) {
+      const picks = pickerButtons();
+      if (!picks.length) return;
+      pickerCursor = Math.max(0, Math.min(picks.length - 1, pickerCursor + delta));
+      syncPickerCursor();
+    }
+
+    function pinPickerCursor() {
+      const picks = pickerButtons();
+      if (!picks.length) return;
+      const cur = picks[pickerCursor];
+      if (!cur) return;
+      const gameId = cur.dataset.game;
+      selectGame(gameId || null);
+    }
+
+    function focusGamePicker() {
+      // Remote lands on Down so Select steps through games without hunting 70 rows.
+      const down = $("gameNavDown");
+      if (down && !down.disabled) {
+        down.focus();
+        return;
+      }
+      const up = $("gameNavUp");
+      if (up) {
+        up.focus();
+        return;
+      }
+      const filter = $("gameFilters") && $("gameFilters").querySelector(".game-filter.active");
+      if (filter) filter.focus();
+    }
+
+    function openMenu() {
+      const overlay = $("menuOverlay");
+      overlay.classList.add("open");
+      overlay.setAttribute("aria-hidden", "false");
+      $("app").classList.add("menu-open");
+      $("menuOpen").setAttribute("aria-expanded", "true");
+      // Featured game is first in the panel; land focus on Up/Down for the remote.
+      if ($("menuScroll")) $("menuScroll").scrollTop = 0;
+      syncPickerCursor();
+      window.setTimeout(focusGamePicker, 30);
+      if (keepAwake) ensureKeepAwake();
+    }
+
+    function closeMenu() {
+      const overlay = $("menuOverlay");
+      overlay.classList.remove("open");
+      overlay.setAttribute("aria-hidden", "true");
+      $("app").classList.remove("menu-open");
+      $("menuOpen").setAttribute("aria-expanded", "false");
+      $("menuOpen").focus();
+    }
+
+    function scrollMenuIntoView(el) {
+      const scroll = $("menuScroll");
+      if (!scroll || !el || !scroll.contains(el)) return;
+      const pad = 20;
+      const scrollRect = scroll.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const top = elRect.top - scrollRect.top + scroll.scrollTop - pad;
+      const bottom = elRect.bottom - scrollRect.top + scroll.scrollTop + pad;
+      if (top < scroll.scrollTop) {
+        scroll.scrollTop = Math.max(0, top);
+      } else if (bottom > scroll.scrollTop + scroll.clientHeight) {
+        scroll.scrollTop = bottom - scroll.clientHeight;
+      }
+    }
+
+    function updateKeepAwakeButton() {
+      const btn = $("keepAwakeBtn");
+      if (!btn) return;
+      btn.textContent = keepAwake ? "Keep screen awake · On" : "Keep screen awake · Off";
+    }
+
+    async function requestWakeLock() {
+      if (!keepAwake || !("wakeLock" in navigator)) return;
+      try {
+        wakeLock = await navigator.wakeLock.request("screen");
+        wakeLock.addEventListener("release", () => {
+          wakeLock = null;
+        });
+      } catch (err) {
+        wakeLock = null;
+      }
+    }
+
+    function startSilentVideo() {
+      const video = $("keepAwakeVideo");
+      if (!video) return;
+      try {
+        if (!video.srcObject) {
+          const canvas = document.createElement("canvas");
+          canvas.width = 2;
+          canvas.height = 2;
+          const ctx = canvas.getContext("2d");
+          const paint = () => {
+            if (!keepAwake) return;
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, 2, 2);
+          };
+          paint();
+          if (typeof canvas.captureStream === "function") {
+            video.srcObject = canvas.captureStream(1);
+            keepAwakeTimer = window.setInterval(paint, 15000);
+          }
+        }
+        const play = video.play();
+        if (play && typeof play.catch === "function") play.catch(() => {});
+      } catch (err) {
+        /* Fire TV / Silk may still require system screensaver settings. */
+      }
+    }
+
+    function stopSilentVideo() {
+      const video = $("keepAwakeVideo");
+      if (keepAwakeTimer) {
+        clearInterval(keepAwakeTimer);
+        keepAwakeTimer = null;
+      }
+      if (!video) return;
+      try {
+        video.pause();
+        if (video.srcObject) {
+          video.srcObject.getTracks().forEach((track) => track.stop());
+          video.srcObject = null;
+        }
+      } catch (err) { /* ignore */ }
+    }
+
+    async function ensureKeepAwake() {
+      if (!keepAwake) {
+        if (wakeLock) {
+          try { await wakeLock.release(); } catch (err) { /* ignore */ }
+          wakeLock = null;
+        }
+        stopSilentVideo();
+        return;
+      }
+      await requestWakeLock();
+      startSilentVideo();
+    }
+
+    async function setKeepAwake(next) {
+      keepAwake = !!next;
+      localStorage.setItem("sportswall-keep-awake", keepAwake ? "1" : "0");
+      updateKeepAwakeButton();
+      await ensureKeepAwake();
+    }
+
     async function load() {
       try {
         const res = await fetch("board.json?t=" + Date.now(), { cache: "no-store" });
         render(await res.json());
       } catch (err) {
-        document.getElementById("subtitle").textContent = "Waiting for Sports Wall to publish board.json";
+        $("footerRight").textContent = "Waiting for Sports Wall to publish board.json";
       }
     }
 
-    function render(data) {
-      document.body.className = data.theme || "arena";
-      document.getElementById("clock").textContent = data.clock || "";
-      document.getElementById("date").textContent = data.date || "";
-      document.getElementById("subtitle").textContent = data.subtitle || "";
-      const games = data.games || [];
-      const featured = data.featured || games[0];
-      const root = document.getElementById("board");
-      if (!featured) {
-        root.innerHTML = '<div class="empty">No games on the board.</div>';
-      } else {
-        root.innerHTML = feature(featured);
-      }
-      document.getElementById("ticker").innerHTML = ticker(games, data.leagues || []);
+    function esc(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
-    function feature(game) {
+    function teamColor(side) {
+      const raw = String((side && side.color) || "").replace("#", "");
+      return raw ? "#" + raw : "#94a2bc";
+    }
+
+    function applyTheme(theme, featured) {
+      const app = $("app");
+      const next = theme || "night";
+      app.dataset.theme = next;
+      $("themeSelect").value = next;
+      if (featured) {
+        const home = teamColor(featured.home);
+        const away = teamColor(featured.away);
+        app.style.setProperty("--team-home", home);
+        app.style.setProperty("--team-away", away);
+        app.style.setProperty("--team-accent", home);
+        app.style.setProperty("--team-glow", home + "55");
+      }
+    }
+
+    function statusTag(game) {
+      if (!game) return "";
+      if (game.status_kind === "live") return '<span class="tag live">● LIVE</span>';
+      if (game.status_kind === "final") return '<span class="tag">FINAL</span>';
+      return '<span class="tag">UPCOMING</span>';
+    }
+
+    function logoHtml(side) {
+      const abbr = esc((side && side.abbreviation) || "?");
+      const color = teamColor(side);
+      if (side && side.logo_url) {
+        return `<div class="team-logo" style="color:${color}"><img src="${esc(side.logo_url)}" alt="${abbr}"></div>`;
+      }
+      return `<div class="team-logo" style="color:${color}">${abbr}</div>`;
+    }
+
+    function teamBlock(side, recordFallback, hasBall) {
+      const name = esc((side && (side.nickname || side.name)) || "TBD");
+      const record = esc((side && side.record) || recordFallback || "");
+      const coach = esc((side && side.coach_label) || "");
+      const coachRow = coach ? `<div class="team-coach">HC ${coach}</div>` : "";
+      const ball = hasBall ? '<div class="possession-mark">Ball</div>' : "";
+      return `${logoHtml(side)}<div class="team-name">${name}</div><div class="team-record">${record}</div>${ball}${coachRow}`;
+    }
+
+    const ARTIFACT_PAGE_SIZE = 4;
+    const ARTIFACT_ROTATE_MS = 8000;
+    let artifactPage = 0;
+    let artifactGameId = "";
+    let artifactTimer = null;
+
+    function artifactPages(items) {
+      const pages = [];
+      for (let i = 0; i < items.length; i += ARTIFACT_PAGE_SIZE) {
+        pages.push(items.slice(i, i + ARTIFACT_PAGE_SIZE));
+      }
+      return pages;
+    }
+
+    function artifactCardHtml(item) {
+      return `
+        <div class="card">
+          <div class="label">${esc(item.label)}</div>
+          <div class="value" title="${esc(item.value)}">${esc(item.value)}</div>
+        </div>`;
+    }
+
+    function artifactCards(game) {
+      const items = Array.isArray(game.artifacts) ? game.artifacts.filter((item) => item && item.value) : [];
+      if (!items.length) return "";
+      const title = esc(game.artifacts_title || "Art'ifacts");
+      const pages = artifactPages(items);
+      if (String(game.id || "") !== artifactGameId) {
+        artifactGameId = String(game.id || "");
+        artifactPage = 0;
+      }
+      if (artifactPage >= pages.length) artifactPage = 0;
+      const page = pages[artifactPage] || [];
+      const cards = page.map(artifactCardHtml).join("");
+      const dots = pages.length > 1
+        ? pages.map((_, idx) =>
+            `<button type="button" class="artifacts-dot${idx === artifactPage ? " active" : ""}" data-artifact-page="${idx}" aria-label="Art'ifacts page ${idx + 1}"></button>`
+          ).join("")
+        : "";
+      return `<section class="artifacts" aria-label="${title}" data-artifact-count="${items.length}">
+        <div class="artifacts-head">
+          <img class="artifacts-logo" src="artifacts-logo.png?v=face2" width="96" height="96" alt="" decoding="async">
+          <div class="artifacts-title">${title}</div>
+        </div>
+        <div class="artifacts-carousel">
+          <div class="artifacts-grid">${cards}</div>
+          <div class="artifacts-dots" ${pages.length > 1 ? "" : "hidden"}>${dots}</div>
+        </div>
+      </section>`;
+    }
+
+    function stopArtifactCarousel() {
+      if (artifactTimer) {
+        window.clearInterval(artifactTimer);
+        artifactTimer = null;
+      }
+    }
+
+    function paintArtifactPage(game) {
+      const root = $("stage") && $("stage").querySelector(".artifacts");
+      if (!root || !game) return;
+      const items = Array.isArray(game.artifacts) ? game.artifacts.filter((item) => item && item.value) : [];
+      const pages = artifactPages(items);
+      if (!pages.length) return;
+      if (artifactPage >= pages.length) artifactPage = 0;
+      const grid = root.querySelector(".artifacts-grid");
+      if (grid) grid.innerHTML = (pages[artifactPage] || []).map(artifactCardHtml).join("");
+      root.querySelectorAll("[data-artifact-page]").forEach((btn) => {
+        const idx = Number(btn.dataset.artifactPage) || 0;
+        btn.classList.toggle("active", idx === artifactPage);
+      });
+    }
+
+    function bindArtifactCarousel(game) {
+      const root = $("stage") && $("stage").querySelector(".artifacts");
+      if (!root || !game) {
+        stopArtifactCarousel();
+        return;
+      }
+      const items = Array.isArray(game.artifacts) ? game.artifacts.filter((item) => item && item.value) : [];
+      const pages = artifactPages(items);
+      root.querySelectorAll("[data-artifact-page]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          artifactPage = Number(btn.dataset.artifactPage) || 0;
+          paintArtifactPage(game);
+        });
+      });
+      if (pages.length <= 1) {
+        stopArtifactCarousel();
+        return;
+      }
+      if (artifactTimer) return;
+      artifactTimer = window.setInterval(() => {
+        const live = latest && (latest.featured || (latest.games || [])[0]);
+        const current = live || game;
+        const liveItems = Array.isArray(current.artifacts)
+          ? current.artifacts.filter((item) => item && item.value)
+          : [];
+        const livePages = artifactPages(liveItems);
+        if (livePages.length <= 1) return;
+        artifactPage = (artifactPage + 1) % livePages.length;
+        paintArtifactPage(current);
+      }, ARTIFACT_ROTATE_MS);
+    }
+
+    function intelligence(game) {
+      const leaders = Array.isArray(game.leaders) ? game.leaders.filter((row) => row && row.line) : [];
+      const fantasy = Array.isArray(game.fantasy_players) ? game.fantasy_players.filter((row) => row && row.line) : [];
+      const rows = [
+        ["Kickoff / clock", game.status_meta || game.status_label || ""],
+        ["Away record", game.away_record || (game.away && game.away.record) || ""],
+        ["Home record", game.home_record || (game.home && game.home.record) || ""],
+      ].filter((row) => row[1]).slice(0, 3);
+      const intel = rows.map(([label, value]) =>
+        `<div class="stat">${esc(label)}<strong>${esc(value)}</strong></div>`
+      ).join("") || `<p class="muted">No extra details.</p>`;
+      const leaderBody = leaders.length
+        ? leaders.slice(0, 3).map((row) => `<div class="stat">${esc(row.line)}<strong></strong></div>`).join("")
+        : `<p class="muted">Leaders when available</p>`;
+      const fantasyBody = fantasy.length
+        ? fantasy.slice(0, 3).map((row) => `<div class="stat">${esc(row.line)}<strong>${esc(row.points || "")}</strong></div>`).join("")
+        : `<p class="muted">Fantasy when live</p>`;
+      return `
+        <div class="lower">
+          <div class="card panel"><h2>Game Intel</h2>${intel}</div>
+          <div class="card panel"><h2>Leaders</h2>${leaderBody}</div>
+          <div class="card panel"><h2>Fantasy</h2>${fantasyBody}</div>
+        </div>`;
+    }
+
+    function teamFoot(label, value) {
+      if (!value) return "";
+      return `<div class="team-foot"><span class="foot-label">${esc(label)}</span>${esc(value)}</div>`;
+    }
+
+    function hero(game, ambient) {
+      if (!game) return `<div class="empty">No games on the board.</div>`;
       const away = game.away || {};
       const home = game.home || {};
-      const live = game.status_kind === "live";
+      const awayName = away.nickname || away.name || "Away";
+      const homeName = home.nickname || home.name || "Home";
+      const matchup = `${awayName} @ ${homeName}`;
+      const network = game.network && game.network !== "TBD" ? game.network : "";
+      const field = game.venue || game.venue_label || "";
+      const odds = game.odds && game.odds.line ? game.odds : null;
+      const oddsHtml = odds
+        ? `<div class="odds-line"><span class="odds-provider">${esc(odds.provider || "Vegas")}</span> · ${esc(odds.line)}</div>`
+        : "";
+      const poss = game.possession === "away" || game.possession === "home" ? game.possession : "";
+      const awayBall = poss === "away";
+      const homeBall = poss === "home";
       return `
-        <section class="feature${live ? " live" : ""}">
-          <div class="status-row">
-            <span class="pill${live ? " live" : ""}">${esc(live ? "LIVE" : game.status_kind === "final" ? "FINAL" : "UPCOMING")}</span>
-            <span class="league">${esc([game.league_label, game.network].filter(Boolean).join(" · "))}</span>
-          </div>
-          <div class="matchup">
-            ${teamCard(away, game.away_score)}
-            <div class="center">
-              <div class="vs">${game.status_kind === "pre" ? "@" : "VS"}</div>
-              <div class="detail">${esc(game.status_meta || game.status_label || "")}</div>
+        <section class="hero">
+          <div class="hero-top">
+            <div>
+              <span class="tag">${esc(game.league_label || "")}</span>
+              ${ambient ? '<span class="tag">AMBIENT</span>' : '<span class="tag">LIVE DATA</span>'}
             </div>
-            ${teamCard(home, game.home_score)}
+            <div>${statusTag(game)}</div>
           </div>
-          <div class="facts">
-            <div class="fact"><small>TV</small><b>${esc(game.network || "TBD")}</b></div>
-            <div class="fact"><small>WEATHER</small><b>${esc(game.weather_line || (game.indoor ? "Indoor" : "TBD"))}</b></div>
-            <div class="fact"><small>VENUE</small><b>${esc(game.venue || game.venue_label || "")}</b></div>
-            <div class="fact"><small>TRAVEL</small><b>${esc([game.travel_label, game.cities_route].filter(Boolean).join(" · ") || "TBD")}</b></div>
+          <div class="hero-center">
+            <div class="team${awayBall ? " has-ball" : ""}">
+              ${teamBlock(away, game.away_record, awayBall)}
+              ${teamFoot("Network", network)}
+            </div>
+            <div class="score">
+              <div class="scoreline">
+                <span class="score-side${awayBall ? " has-ball" : ""}">
+                  <span>${esc(game.away_score || "—")}</span>
+                  <span class="possession-pip" aria-hidden="true"></span>
+                </span>
+                <span class="sep">:</span>
+                <span class="score-side${homeBall ? " has-ball" : ""}">
+                  <span>${esc(game.home_score || "—")}</span>
+                  <span class="possession-pip" aria-hidden="true"></span>
+                </span>
+              </div>
+              <div class="game-clock">${esc(game.status_meta || game.status_label || "")}</div>
+              <div class="subline">${esc(game.situation || "")}</div>
+              <div class="matchup-line">${esc(matchup)}</div>
+              ${oddsHtml}
+            </div>
+            <div class="team${homeBall ? " has-ball" : ""}">
+              ${teamBlock(home, game.home_record, homeBall)}
+              ${teamFoot("Field", field)}
+            </div>
           </div>
         </section>`;
     }
 
-    function teamCard(side, score) {
-      const mark = side.logo_url
-        ? `<img src="${esc(side.logo_url)}" alt="${esc(side.abbreviation)}">`
-        : esc(side.abbreviation || "?");
-      return `
-        <div class="team-card">
-          <div class="logo" style="background:#${side.color || "1a2848"}">${mark}</div>
-          <div class="city">${esc(side.city_label || side.location || "")}</div>
-          <div class="name">${esc(side.nickname || side.name || "")}</div>
-          <div class="abbr">${esc(side.abbreviation || "")}</div>
-          <div class="score">${esc(score || "—")}</div>
-        </div>`;
+    function gameFocus(game) {
+      if (!game) return `<div class="empty">No games on the board.</div>`;
+      return `<div class="focus-layout">${hero(game, false)}${artifactCards(game)}${intelligence(game)}</div>`;
     }
 
-    function ticker(games, leagues) {
-      const label = leagues.length === 1 ? leagues[0] : "SPORTS";
-      if (!games.length) {
-        return `<div class="league-label">${esc(label)}</div><div class="ticker-window"></div>`;
+    function multiView(games, featuredId) {
+      if (!games.length) return `<div class="empty">No games on the board.</div>`;
+      return `<div class="bigpanel">${games.map((game) => {
+        const away = game.away || {};
+        const home = game.home || {};
+        const selected = game.id === featuredId ? " selected" : "";
+        return `
+          <button type="button" class="card${selected}" data-game="${esc(game.id)}">
+            <div class="label">${esc(game.league_label || "")} · ${esc(game.status_label || "")}</div>
+            <div class="fantasy-row">
+              <div>
+                <div style="font-size:1.5rem;font-weight:900;color:${teamColor(away)}">${esc(away.abbreviation || "?")}</div>
+                <strong>${esc(away.nickname || away.name || "")}</strong>
+              </div>
+              <div class="fantasy-score">${esc(game.away_score || "—")} : ${esc(game.home_score || "—")}</div>
+              <div style="text-align:right">
+                <div style="font-size:1.5rem;font-weight:900;color:${teamColor(home)}">${esc(home.abbreviation || "?")}</div>
+                <strong>${esc(home.nickname || home.name || "")}</strong>
+              </div>
+            </div>
+            <div class="stat">${esc(game.status_meta || "")}<strong>${esc(game.network || "")}</strong></div>
+            <div class="small">Select to open Game Focus →</div>
+          </button>`;
+      }).join("")}</div>`;
+    }
+
+    function fantasyView(data, game) {
+      const fantasy = (game && Array.isArray(game.fantasy_players))
+        ? game.fantasy_players.filter((row) => row && row.line)
+        : [];
+      const enabled = !!(data && data.fantasy_enabled);
+      const err = (data && data.fantasy_error) || "";
+      if (!enabled) {
+        return `
+          <div class="bigpanel">
+            <div class="card">
+              <div class="label">ESPN Fantasy Football</div>
+              <h2>Not connected</h2>
+              <p class="muted">Turn on Fantasy in Sports Wall settings and add your league id, team id, espn_s2, and SWID. Credentials stay in Home Assistant — never in this page.</p>
+              <div class="pill">Configure in HA</div>
+            </div>
+            <div class="card">
+              <h2>When live</h2>
+              <p class="muted">Fantasy HQ will show your starters who are playing in the featured NFL game, with live scoring lines from ESPN.</p>
+            </div>
+          </div>`;
       }
-      const chips = games.map(chip).join("");
-      const duration = Math.max(18, games.length * 6);
+      if (err && !fantasy.length) {
+        return `<div class="card"><div class="label">Fantasy</div><h2>Could not load roster</h2><p class="muted">${esc(err)}</p></div>`;
+      }
+      if (!fantasy.length) {
+        return `
+          <div class="bigpanel">
+            <div class="card">
+              <div class="label">Fantasy connected</div>
+              <h2>No starters in this game</h2>
+              <p class="muted">Pin a live NFL game that includes your starters, or wait for kickoff. Standings and full matchup scoring land in a later milestone — this view never invents points.</p>
+            </div>
+            <div class="card">
+              <div class="label">Featured game</div>
+              <h2>${esc(game ? ((game.away || {}).abbreviation || "") + " @ " + ((game.home || {}).abbreviation || "") : "—")}</h2>
+              <div class="stat">Status<strong>${esc(game ? (game.status_label || "") : "")}</strong></div>
+            </div>
+          </div>`;
+      }
       return `
-        <div class="league-label">${esc(String(label).toUpperCase())}</div>
-        <div class="ticker-window">
-          <div class="ticker-track" style="--ticker-duration:${duration}s">
-            <div class="ticker-set">${chips}</div>
-            <div class="ticker-set" aria-hidden="true">${chips}</div>
+        <div class="bigpanel">
+          <div class="card">
+            <div class="label">Your players in featured game</div>
+            <h2>${esc(((game.away || {}).abbreviation || "") + " @ " + ((game.home || {}).abbreviation || ""))}</h2>
+            ${fantasy.map((row) => `<div class="stat">${esc(row.line)}<strong>${esc(row.points || "")}</strong></div>`).join("")}
+            <p class="small">Live ESPN Fantasy · starters only</p>
           </div>
         </div>`;
     }
 
-    function chip(game) {
+    function selectedGameId(data) {
+      const featuredId = (data.featured && data.featured.id) || data.featured_game_id || "";
+      const pinned = !!(data.featured && data.featured.pinned);
+      return pinned ? featuredId : "";
+    }
+
+    function markPickerSelection(selectedId) {
+      const picker = $("gamePicker");
+      if (!picker) return;
+      picker.querySelectorAll(".game-pick").forEach((btn) => {
+        const on = (btn.dataset.game || "") === (selectedId || "");
+        btn.classList.toggle("selected", on);
+        btn.setAttribute("aria-selected", on ? "true" : "false");
+      });
+    }
+
+    function gameHaystack(game) {
       const away = game.away || {};
       const home = game.home || {};
-      const score = game.status_kind === "pre"
-        ? `<span>@</span>`
-        : `<span>${esc(game.away_score)}</span><span>-</span><span>${esc(game.home_score)}</span>`;
-      const status = game.status_kind === "live"
-        ? `<span class="live-status"><span class="dot"></span>${esc(game.status_meta || "LIVE")}</span>`
-        : `<span class="${game.status_kind === "final" ? "final-status" : "kickoff"}">${esc(game.status_label)}</span>`;
-      return `<div class="ticker-game">${logo(away)}${esc(away.abbreviation)}${score}${esc(home.abbreviation)}${logo(home)}${status}</div>`;
+      return [
+        game.league, game.league_label, game.status_label, game.name, game.short_name,
+        away.abbreviation, away.name, away.nickname, away.location,
+        home.abbreviation, home.name, home.nickname, home.location,
+      ].join(" ").toLowerCase();
     }
 
-    function logo(side) {
-      if (side.logo_url) return `<img src="${esc(side.logo_url)}" alt="${esc(side.abbreviation)}">`;
-      return `<div class="ticker-fallback">${esc((side.abbreviation || "?").slice(0, 3))}</div>`;
+    function filteredGames(games) {
+      const q = (gameSearch || "").trim().toLowerCase();
+      return games.filter((game) => {
+        const kind = String(game.status_kind || "").toLowerCase();
+        const league = String(game.league || "").toLowerCase();
+        if (gameFilter === "live" && kind !== "live") return false;
+        if (gameFilter === "upcoming" && kind !== "pre") return false;
+        if (gameFilter !== "all" && gameFilter !== "live" && gameFilter !== "upcoming" && league !== gameFilter) {
+          return false;
+        }
+        if (q && !gameHaystack(game).includes(q)) return false;
+        return true;
+      });
     }
 
-    function esc(value) {
-      return String(value || "").replace(/[&<>"']/g, ch => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-      }[ch]));
+    function fillGameFilters(data, force) {
+      const host = $("gameFilters");
+      if (!host) return;
+      const games = data.games || [];
+      const leagues = [];
+      const seen = new Set();
+      games.forEach((game) => {
+        const key = String(game.league || "").toLowerCase();
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        leagues.push({ id: key, label: game.league_label || key.toUpperCase() });
+      });
+      const chips = [
+        { id: "live", label: "Live" },
+        { id: "all", label: "All" },
+        { id: "upcoming", label: "Upcoming" },
+        ...leagues,
+      ];
+      if (!chips.some((chip) => chip.id === gameFilter)) gameFilter = "live";
+      const sig = chips.map((chip) => chip.id).join(",") + "#" + gameFilter;
+      if (!force && sig === gameFilterSig && host.childElementCount) {
+        host.querySelectorAll("[data-filter]").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.filter === gameFilter);
+        });
+        return;
+      }
+      gameFilterSig = sig;
+      host.innerHTML = chips.map((chip) => {
+        const on = chip.id === gameFilter ? " active" : "";
+        return `<button type="button" class="game-filter${on}" data-filter="${esc(chip.id)}">${esc(chip.label)}</button>`;
+      }).join("");
+      host.querySelectorAll("[data-filter]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          gameFilter = btn.dataset.filter || "all";
+          gamePickerSig = "";
+          fillGameFilters(latest || data, true);
+          fillGamePicker(latest || data, true);
+          focusGamePicker();
+        });
+      });
     }
 
-    load();
-    setInterval(load, 90000);
+    function pickScore(game) {
+      const kind = String(game.status_kind || "").toLowerCase();
+      const away = game.away_score;
+      const home = game.home_score;
+      if (kind === "pre" || away == null || home == null) {
+        return { text: game.status_label || "Upcoming", muted: true };
+      }
+      return { text: `${away} - ${home}`, muted: false };
+    }
+
+    function fillGamePicker(data, force) {
+      const picker = $("gamePicker");
+      if (!picker) return;
+      const games = data.games || [];
+      const selectedId = selectedGameId(data);
+      const visible = filteredGames(games);
+      // Identity + filter only — ignore ticking status labels so polls don't rebuild the list.
+      const sig = [
+        gameFilter,
+        gameSearch,
+        selectedId || "auto",
+        ...visible.map((game) => game.id),
+        ...games.map((game) => game.id),
+      ].join("|");
+      if (!force && sig === gamePickerSig && picker.childElementCount) {
+        markPickerSelection(selectedId);
+        // Soft-update scores/status text without remounting buttons.
+        picker.querySelectorAll(".game-pick[data-game]").forEach((btn) => {
+          const game = games.find((row) => row.id === btn.dataset.game);
+          if (!game) return;
+          const score = pickScore(game);
+          const scoreEl = btn.querySelector(".game-pick-score");
+          const metaEl = btn.querySelector("small");
+          if (scoreEl) {
+            scoreEl.textContent = score.text;
+            scoreEl.classList.toggle("muted", score.muted);
+          }
+          if (metaEl) {
+            metaEl.textContent = [game.league_label || "", game.status_label || ""].filter(Boolean).join(" · ");
+          }
+        });
+        syncPickerCursor();
+        return;
+      }
+      const menuScroll = $("menuScroll");
+      const keepScroll = isMenuOpen();
+      const top = menuScroll ? menuScroll.scrollTop : 0;
+      const prevCursorGame = (() => {
+        const picks = pickerButtons();
+        return picks[pickerCursor] ? picks[pickerCursor].dataset.game : null;
+      })();
+      gamePickerSig = sig;
+      const rows = [
+        `<button type="button" class="game-pick${selectedId ? "" : " selected"}" role="option" tabindex="-1" data-game="" aria-selected="${selectedId ? "false" : "true"}"><span class="game-pick-main">Auto · headliner<small>Best live / primetime pick</small></span><span class="game-pick-score muted">AUTO</span></button>`,
+      ].concat(
+        visible.map((game) => {
+          const away = (game.away || {}).abbreviation || "?";
+          const home = (game.home || {}).abbreviation || "?";
+          const on = selectedId && game.id === selectedId;
+          const meta = [game.league_label || "", game.status_label || ""].filter(Boolean).join(" · ");
+          const score = pickScore(game);
+          return `<button type="button" class="game-pick${on ? " selected" : ""}" role="option" tabindex="-1" data-game="${esc(game.id)}" aria-selected="${on ? "true" : "false"}"><span class="game-pick-main">${esc(away)} @ ${esc(home)}<small>${esc(meta)}</small></span><span class="game-pick-score${score.muted ? " muted" : ""}">${esc(score.text)}</span></button>`;
+        })
+      );
+      if (!games.length) {
+        rows.push(`<div class="game-picker-empty">No games on the board right now</div>`);
+      } else if (!visible.length) {
+        rows.push(`<div class="game-picker-empty">No games match this filter — try All or a league</div>`);
+      }
+      picker.innerHTML = rows.join("");
+      picker.querySelectorAll(".game-pick").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          selectGame(btn.dataset.game || null);
+        });
+      });
+      const picks = pickerButtons();
+      let idx = picks.findIndex((btn) => (btn.dataset.game || "") === (selectedId || ""));
+      if (idx < 0 && prevCursorGame != null) {
+        idx = picks.findIndex((btn) => (btn.dataset.game || "") === prevCursorGame);
+      }
+      pickerCursor = idx >= 0 ? idx : 0;
+      if (keepScroll && menuScroll) menuScroll.scrollTop = top;
+      syncPickerCursor();
+    }
+
+    function setTab(next, persist) {
+      tab = VIEWS.includes(next) ? next : "game";
+      document.querySelectorAll("[data-tab]").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.tab === tab);
+      });
+      if ($("modePill")) $("modePill").textContent = VIEW_LABELS[tab] || tab;
+      paintStage();
+      if (persist) {
+        fetch(MODE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ board_view: tab }),
+        }).catch(() => {});
+        closeMenu();
+      }
+    }
+
+    function paintStage() {
+      const data = latest || {};
+      const games = data.games || [];
+      const featured = data.featured || games[0] || null;
+      const stage = $("stage");
+      stage.classList.toggle("scrollable", tab === "multi" || tab === "fantasy");
+      if (tab !== "game") stopArtifactCarousel();
+      if (tab === "multi") stage.innerHTML = multiView(games, featured && featured.id);
+      else if (tab === "fantasy") stage.innerHTML = fantasyView(data, featured);
+      else if (tab === "ambient") stage.innerHTML = `<div class="ambient-wrap">${hero(featured, true)}</div>`;
+      else stage.innerHTML = gameFocus(featured);
+      stage.querySelectorAll("[data-game]").forEach((btn) => {
+        btn.addEventListener("click", () => selectGame(btn.dataset.game));
+      });
+      if (tab === "game") bindArtifactCarousel(featured);
+    }
+
+    function applyFeaturedLocally(gameId) {
+      if (!latest) return;
+      const games = latest.games || [];
+      if (!gameId) {
+        latest = { ...latest, featured: { ...(games[0] || {}), pinned: false }, featured_game_id: (games[0] || {}).id || null };
+        return;
+      }
+      const game = games.find((row) => row.id === gameId);
+      if (!game) return;
+      latest = {
+        ...latest,
+        featured: { ...game, pinned: true },
+        featured_game_id: gameId,
+      };
+    }
+
+    async function selectGame(gameId) {
+      if (busy) return;
+      busy = true;
+      markPickerSelection(gameId || "");
+      applyFeaturedLocally(gameId || null);
+      tab = "game";
+      document.querySelectorAll("[data-tab]").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.tab === tab);
+      });
+      if ($("modePill")) $("modePill").textContent = VIEW_LABELS[tab] || tab;
+      paintStage();
+      closeMenu();
+      $("footerRight").textContent = "Switching featured game…";
+      try {
+        const body = gameId ? { game_id: gameId } : { auto: true };
+        const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+        const timer = ctrl ? setTimeout(() => ctrl.abort(), 8000) : null;
+        const res = await fetch(FEATURED_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          signal: ctrl ? ctrl.signal : undefined,
+        });
+        if (timer) clearTimeout(timer);
+        if (!res.ok) throw new Error("pin failed");
+        fetch(MODE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ board_view: "game" }),
+        }).catch(() => {});
+        // Refresh in the background — UI already switched.
+        load().catch(() => {});
+      } catch (err) {
+        $("footerRight").textContent = "Could not change featured game — reload Sports Wall in Home Assistant";
+        await load();
+      } finally {
+        busy = false;
+      }
+    }
+
+    function render(data) {
+      latest = data;
+      const featured = data.featured || (data.games || [])[0] || null;
+      const uiTheme = data.ui_theme || data.theme || "night";
+      applyTheme(uiTheme, featured);
+      $("clock").textContent = data.clock || "";
+      $("date").textContent = data.date || "";
+      $("sourceTag").textContent = (data.data_source || "live").toUpperCase();
+      $("footerLeft").textContent = "SPORTS WALL · " + (data.subtitle || "");
+      $("footerRight").textContent = data.has_games
+        ? `${data.game_count || 0} games · Art'ifacts live`
+        : "No games today";
+      const menuOpen = isMenuOpen();
+      fillGameFilters(data);
+      fillGamePicker(data);
+      if (data.board_view && VIEWS.includes(data.board_view) && !menuOpen && !busy) {
+        tab = data.board_view;
+        document.querySelectorAll("[data-tab]").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.tab === tab);
+        });
+        if ($("modePill")) $("modePill").textContent = VIEW_LABELS[tab] || tab;
+      }
+      // Never rebuild the main stage while the picker is open — that steals remote focus.
+      if (!menuOpen) paintStage();
+    }
+    $("themeSelect").addEventListener("change", async () => {
+      const theme = $("themeSelect").value;
+      applyTheme(theme, latest && (latest.featured || (latest.games || [])[0]));
+      try {
+        await fetch(THEME_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ theme }),
+        });
+      } catch (err) { /* local theme still applies */ }
+    });
+    document.querySelectorAll("[data-tab]").forEach((btn) => {
+      btn.addEventListener("click", () => setTab(btn.dataset.tab, true));
+    });
+    $("fullscreen").addEventListener("click", () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+      closeMenu();
+    });
+    const gameSearchInput = $("gameSearch");
+    if (gameSearchInput) {
+      gameSearchInput.addEventListener("input", () => {
+        gameSearch = gameSearchInput.value || "";
+        gamePickerSig = "";
+        fillGamePicker(latest || { games: [] }, true);
+      });
+    }
+    $("menuOpen").addEventListener("click", openMenu);
+    $("menuClose").addEventListener("click", closeMenu);
+    $("menuOverlay").addEventListener("click", (event) => {
+      if (event.target === $("menuOverlay")) closeMenu();
+    });
+    $("menuScroll").addEventListener("focusin", (event) => {
+      scrollMenuIntoView(event.target);
+    });
+    if ($("gameNavUp")) $("gameNavUp").addEventListener("click", () => movePicker(-1));
+    if ($("gameNavDown")) $("gameNavDown").addEventListener("click", () => movePicker(1));
+    if ($("gameNavPin")) $("gameNavPin").addEventListener("click", () => pinPickerCursor());
+    document.addEventListener("keydown", (event) => {
+      if (!isMenuOpen()) return;
+      if (event.key === "Escape") {
+        closeMenu();
+        return;
+      }
+      const active = document.activeElement;
+      const scroll = $("menuScroll");
+      const featured = $("featuredGameSection");
+      const picks = pickerButtons();
+      const filters = $("gameFilters") ? Array.from($("gameFilters").querySelectorAll(".game-filter")) : [];
+      const onNav = !!(active && active.classList && active.classList.contains("game-nav-btn"));
+      const onFilter = filters.includes(active);
+      const inFeatured = !!(featured && active && featured.contains(active));
+      const onLowerControl = !!(active && (
+        active.closest("#tabs") ||
+        active.id === "themeSelect" ||
+        active.id === "keepAwakeBtn" ||
+        active.id === "fullscreen" ||
+        active.id === "menuClose"
+      ));
+
+      // While on Up/Down/Pin: Left/Right moves between those three; Up/Down steps the cursor.
+      if (onNav && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
+        event.preventDefault();
+        const navs = ["gameNavUp", "gameNavDown", "gameNavPin"]
+          .map((id) => $(id))
+          .filter((btn) => btn && !btn.disabled);
+        const idx = navs.indexOf(active);
+        if (idx < 0) return;
+        const next = event.key === "ArrowRight"
+          ? Math.min(navs.length - 1, idx + 1)
+          : Math.max(0, idx - 1);
+        navs[next].focus();
+        return;
+      }
+      if ((onNav || inFeatured || !onLowerControl) && picks.length && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+        event.preventDefault();
+        movePicker(event.key === "ArrowDown" ? 1 : -1);
+        if (!onNav) focusGamePicker();
+        return;
+      }
+      if (onNav && (event.key === "Enter" || event.key === " ") && active.id === "gameNavPin") {
+        event.preventDefault();
+        pinPickerCursor();
+        return;
+      }
+
+      if (filters.length && (event.key === "ArrowLeft" || event.key === "ArrowRight") && onFilter) {
+        event.preventDefault();
+        const idx = filters.indexOf(active);
+        const next = event.key === "ArrowRight"
+          ? Math.min(filters.length - 1, idx + 1)
+          : Math.max(0, idx - 1);
+        filters[next].focus();
+        scrollMenuIntoView(filters[next]);
+        return;
+      }
+      if (!scroll) return;
+      if (event.key === "PageDown" || event.key === "PageUp") {
+        event.preventDefault();
+        movePicker(event.key === "PageDown" ? 5 : -5);
+        focusGamePicker();
+      }
+    }, true);
+    $("keepAwakeBtn").addEventListener("click", () => setKeepAwake(!keepAwake));
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && keepAwake) ensureKeepAwake();
+    });
+    // First remote/click unlocks autoplay on Silk / Fire TV.
+    ["pointerdown", "keydown", "touchstart"].forEach((name) => {
+      window.addEventListener(name, () => { if (keepAwake) ensureKeepAwake(); }, { passive: true, once: true });
+    });
+    updateKeepAwakeButton();
+    ensureKeepAwake();
+    setInterval(() => { if (keepAwake) ensureKeepAwake(); }, 30000);
+
+    let boardPollMs = 3000;
+    async function tickBoard() {
+      await load();
+      const live = !!(latest && ((latest.live_count || 0) > 0 || (latest.featured && latest.featured.status_kind === "live")));
+      boardPollMs = live ? 3000 : 20000;
+      setTimeout(tickBoard, boardPollMs);
+    }
+    tickBoard();
   </script>
 </body>
 </html>

@@ -147,6 +147,76 @@ def test_parse_nfl_scoreboard_fixture() -> None:
     assert "Foxborough" in game.cities_route()
 
 
+def test_espn_accuweather_condition_id() -> None:
+    payload = {
+        "events": [
+            {
+                "id": "wx1",
+                "date": "2026-11-23T18:00Z",
+                "name": "Cincinnati Bengals at Washington Commanders",
+                "shortName": "CIN @ WSH",
+                "weather": {
+                    "displayValue": "12",
+                    "temperature": 55,
+                    "conditionId": "A shower",
+                },
+                "status": {
+                    "displayClock": "0:00",
+                    "period": 0,
+                    "type": {"state": "pre", "shortDetail": "1:00 PM EST"},
+                },
+                "competitions": [
+                    {
+                        "venue": {
+                            "id": "3719",
+                            "fullName": "Northwest Stadium",
+                            "indoor": False,
+                            "address": {"city": "Landover", "state": "MD"},
+                        },
+                        "broadcasts": [{"market": "national", "names": ["CBS"]}],
+                        "competitors": [
+                            {
+                                "homeAway": "home",
+                                "score": "0",
+                                "team": {
+                                    "id": "28",
+                                    "abbreviation": "WSH",
+                                    "displayName": "Washington Commanders",
+                                    "shortDisplayName": "Commanders",
+                                    "location": "Washington",
+                                    "name": "Commanders",
+                                    "color": "5a1414",
+                                    "alternateColor": "ffb612",
+                                    "logo": "",
+                                },
+                            },
+                            {
+                                "homeAway": "away",
+                                "score": "0",
+                                "team": {
+                                    "id": "4",
+                                    "abbreviation": "CIN",
+                                    "displayName": "Cincinnati Bengals",
+                                    "shortDisplayName": "Bengals",
+                                    "location": "Cincinnati",
+                                    "name": "Bengals",
+                                    "color": "fb4f14",
+                                    "alternateColor": "000000",
+                                    "logo": "",
+                                },
+                            },
+                        ],
+                    }
+                ],
+            }
+        ]
+    }
+    games = parse_scoreboard(payload, LEAGUE_NFL)
+    assert games[0].weather_text == "Showers"
+    assert games[0].weather_temp_f == 55
+    assert games[0].venue_id == "3719"
+
+
 def test_live_mlb_scores_and_broadcasts() -> None:
     payload = {
         "events": [

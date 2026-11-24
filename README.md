@@ -14,14 +14,20 @@ board for a room, not a dashboard you have to hunt through.
 
 ## What it does
 
-- Pulls **NFL, NBA, MLB, and NHL** (college football and basketball are
+- Pulls **NFL, NBA, MLB, NHL, and college football** (college basketball is
   optional) from ESPN's public scoreboard. No API key.
-- A **featured matchup** in the middle (live game first), with scores,
-  venue weather, travel between the two clubs, both cities, and the
-  network.
-- An **ESPN-style ticker** along the bottom for the rest of today's
-  games. The tablet HTML page actually scrolls; the TV image shows the
-  same chips in a strip.
+- A **TV-first SPA** (`/local/sportswall/board.html`) with Game Focus,
+  Multiview, Fantasy HQ, and Ambient layouts, driven by live `board.json`.
+- A **featured matchup** with scores and an **Art'ifacts** carousel: TV,
+  weather, venue, grass/turf, travel, elevation, coaches, O-line weight,
+  and QBs (football).
+- Theme picker: Midnight, Clean Light, Team Colors, Stadium (plus Arena /
+  Broadcast for Cast PNG).
+- **Pick the featured game** with `select.sportswall_featured_game` (or
+  `sportswall.select_game`) and see **box-score leaders** for that
+  matchup.
+- Optional **ESPN Fantasy** strip: your starters who are in the
+  featured live NFL game.
 - On a TV, writes a 4K board image and Casts it. On a tablet or a
   Chromecast that can run Home Assistant, the **Sportswall** sidebar is
   a live Lovelace markdown board (same pattern as Flight Wall). The
@@ -59,13 +65,19 @@ the LAN as `/local/sportswall-board.png`.
 No other sports integration is required. Scores come from ESPN; weather
 fallbacks come from Open-Meteo.
 
-### Tablet (same HACS install)
+### Tablet / Fire TV Silk (same HACS install)
 
 A browser or [Fully Kiosk](https://www.fully-kiosk.com/) on a wall
 tablet. Open **Sportswall** in the sidebar (`/sports-wall/board`) for
 the live Lovelace board, or
 `http://YOUR_HA:8123/local/sportswall/board.html` for the animated HTML
-ticker.
+board.
+
+On **Fire TV / Silk**, open the board hamburger menu and leave
+**Keep screen awake** on. That uses the browser Wake Lock API plus a
+tiny silent video loop. If the Amazon screensaver still starts, also
+set **Settings → Display & Sounds → Screensaver → Start When** to a
+longer wait (or Never) — Silk cannot fully override Fire OS.
 
 ## Installation
 
@@ -110,7 +122,7 @@ units or be forced to 12-hour / 24-hour.
 
 | What | Where | Default |
 |---|---|---|
-| Leagues, today vs slate, display, theme, units, clock, logos, image refresh, quiet hours | Integration → Configure | NFL/NBA/MLB/NHL, today, Image, Arena night, imperial, 120 s refresh |
+| Leagues, today vs slate, display, theme, units, clock, logos, image refresh, quiet hours | Integration → Configure | NFL/NBA/MLB/NHL/NCAAF, today, Image, Arena night, imperial, 120 s refresh |
 | TV is a sports board | `switch.sportswall_tv` | on after setup |
 
 **Today only** is the wall you asked for: games whose local start date
@@ -122,8 +134,46 @@ current week/day board (useful on an NFL Sunday).
 | Entity | Meaning |
 |---|---|
 | `sensor.sportswall_games` | How many games are on the board. Attributes include every game, weather, travel, and the rendered `board` payload |
+| `select.sportswall_featured_game` | Auto or a specific game for the featured matchup (restores after restart) |
 | `binary_sensor.sportswall_live` | On while any selected game is in progress |
 | `switch.sportswall_tv` | Arm or disarm TV takeover |
+
+### Feature a game
+
+On the HTML board (`/local/sportswall/board.html`), use the **Games**
+button (Fire TV remote: highlight it, press OK) and pick a matchup.
+
+Or use the select entity in Home Assistant:
+
+```yaml
+action: sportswall.select_game
+data:
+  game_id: "401772510"
+```
+
+```yaml
+action: sportswall.select_game
+data:
+  auto: true
+```
+
+Game ids are on `sensor.sportswall_games` → attributes → `games`.
+
+### ESPN Fantasy (optional)
+
+Under **Configure**, turn on Fantasy and enter:
+
+| Field | Where to find it |
+|---|---|
+| League id | The number in your `fantasy.espn.com` league URL |
+| Team id | Your team’s id in that league (also in the URL when you open your roster) |
+| `espn_s2` / `SWID` | Browser DevTools → Application → Cookies → `fantasy.espn.com` |
+| Season | NFL fantasy season year (defaults to the current one) |
+
+While the featured game is a **live NFL** game, the board lists your
+starters whose NFL club is in that matchup, with live fantasy points.
+Cookies can expire; leave `espn_s2` blank on later Configure saves to
+keep the stored value.
 
 ## Tablet URL
 

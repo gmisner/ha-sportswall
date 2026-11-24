@@ -1,3 +1,20 @@
 recast:
   name: Show board on TV
   description: Switch the television to Cast and show the current Sports Wall board. Does nothing if the set is off.
+
+select_game:
+  name: Feature a game
+  description: Pin a game as the featured matchup, or set auto to let Sports Wall pick.
+  fields:
+    game_id:
+      name: Game id
+      description: ESPN event id from sensor.sportswall_games attributes.
+      example: "401772510"
+      selector:
+        text:
+    auto:
+      name: Auto
+      description: Clear the pin and feature the automatic headliner.
+      default: false
+      selector:
+        boolean:

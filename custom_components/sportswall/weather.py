@@ -49,6 +49,49 @@ def text_from_wmo(code: int | None) -> str:
     return WMO_ICONS.get(int(code), ("Cloudy", "cloud"))[0]
 
 
+# AccuWeather crumbs ESPN sometimes stuffs into conditionId ("A shower").
+_CONDITION_ALIASES: dict[str, str] = {
+    "shower": "Showers",
+    "a shower": "Showers",
+    "showers": "Showers",
+    "rain shower": "Showers",
+    "rain showers": "Showers",
+    "t-storm": "Thunderstorms",
+    "t-storms": "Thunderstorms",
+    "thunderstorm": "Thunderstorms",
+    "thunderstorms": "Thunderstorms",
+    "mostly sunny": "Mostly sunny",
+    "partly sunny": "Partly sunny",
+    "mostly cloudy": "Mostly cloudy",
+    "partly cloudy": "Partly cloudy",
+}
+
+
+def normalize_condition(value: str | None) -> str:
+    """Clean ESPN/AccuWeather condition labels for the Art'ifacts strip."""
+    raw = " ".join(str(value or "").split()).strip()
+    if not raw:
+        return ""
+    key = raw.lower()
+    if key in _CONDITION_ALIASES:
+        return _CONDITION_ALIASES[key]
+    for prefix in ("a ", "an ", "the "):
+        if key.startswith(prefix):
+            raw = raw[len(prefix) :].strip()
+            key = raw.lower()
+            break
+    if key in _CONDITION_ALIASES:
+        return _CONDITION_ALIASES[key]
+    if not raw:
+        return ""
+    # Title-case short phrases; keep existing caps for longer AccuWeather lines.
+    if len(raw) <= 24 and raw == raw.lower():
+        return raw[:1].upper() + raw[1:]
+    if raw[:1].islower():
+        return raw[:1].upper() + raw[1:]
+    return raw
+
+
 def icon_from_text(value: str | None) -> str:
     text = (value or "").strip().lower()
     if not text:
@@ -74,11 +117,13 @@ def icon_from_text(value: str | None) -> str:
     return "cloud"
 
 
-def parse_open_meteo(payload: dict[str, Any]) -> tuple[float | None, str, str]:
-    """Return (temp_f, text, icon) from an Open-Meteo current-conditions payload."""
-    current = payload.get("current") if isinstance(payload, dict) else None
-    if not isinstance(current, dict):
-        return None, "", "unknown"
+def parse_open_meteo(
+    payload: dict[str, Any],
+) -> tuple[float | None, str, str, float | None]:
+    """Return (temp_f, text, icon, elevation_m) from an Open-Meteo payload."""
+    if not isinstance(payload, dict):
+        return None, "", "unknown", None
+    current = payload.get("current") if isinstance(payload.get("current"), dict) else {}
     temp = current.get("temperature_2m")
     try:
         temp_f = float(temp) if temp is not None else None
@@ -88,4 +133,10 @@ def parse_open_meteo(payload: dict[str, Any]) -> tuple[float | None, str, str]:
         code = int(current.get("weather_code"))
     except (TypeError, ValueError):
         code = None
-    return temp_f, text_from_wmo(code), icon_from_wmo(code)
+    elevation_m = None
+    try:
+        if payload.get("elevation") is not None:
+            elevation_m = float(payload.get("elevation"))
+    except (TypeError, ValueError):
+        elevation_m = None
+    return temp_f, text_from_wmo(code), icon_from_wmo(code), elevation_m

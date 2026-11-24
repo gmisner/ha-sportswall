@@ -1,0 +1,66 @@
+[
+  {
+    "team": {
+      "abbreviation": "PHI"
+    },
+    "leaders": [
+      {
+        "name": "passingYards",
+        "displayName": "Passing Yards",
+        "leaders": [
+          {
+            "displayValue": "19/23, 152 YDS",
+            "athlete": {"shortName": "J. Hurts", "displayName": "Jalen Hurts"}
+          }
+        ]
+      },
+      {
+        "name": "rushingYards",
+        "displayName": "Rushing Yards",
+        "leaders": [
+          {
+            "displayValue": "14 CAR, 62 YDS, 2 TD",
+            "athlete": {"shortName": "J. Hurts"}
+          }
+        ]
+      },
+      {
+        "name": "receivingYards",
+        "displayName": "Receiving Yards",
+        "leaders": [
+          {
+            "displayValue": "3 REC, 59 YDS",
+            "athlete": {"shortName": "J. Dotson"}
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "team": {
+      "abbreviation": "DAL"
+    },
+    "leaders": [
+      {
+        "name": "passingYards",
+        "displayName": "Passing Yards",
+        "leaders": [
+          {
+            "displayValue": "21/34, 188 YDS",
+            "athlete": {"shortName": "D. Prescott"}
+          }
+        ]
+      },
+      {
+        "name": "receivingYards",
+        "displayName": "Receiving Yards",
+        "leaders": [
+          {
+            "displayValue": "7 REC, 110 YDS",
+            "athlete": {"shortName": "C. Lamb"}
+          }
+        ]
+      }
+    ]
+  }
+]

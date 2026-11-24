@@ -1,0 +1,38 @@
+[
+  {
+    "provider": {
+      "id": "100",
+      "name": "Draft Kings",
+      "priority": 1
+    },
+    "details": "SEA -3",
+    "overUnder": 46.5,
+    "spread": -3.0,
+    "awayTeamOdds": {
+      "favorite": false,
+      "underdog": true,
+      "moneyLine": 140
+    },
+    "homeTeamOdds": {
+      "favorite": true,
+      "underdog": false,
+      "moneyLine": -166
+    }
+  },
+  {
+    "provider": {
+      "id": "58",
+      "name": "Caesars",
+      "priority": 5
+    },
+    "details": "SEA -2.5",
+    "overUnder": 47.0,
+    "spread": -2.5,
+    "awayTeamOdds": {
+      "moneyLine": 135
+    },
+    "homeTeamOdds": {
+      "moneyLine": -155
+    }
+  }
+]

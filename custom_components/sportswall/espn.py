@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 from .const import (
     ESPN_SCOREBOARD,
+    ESPN_SUMMARY,
     LEAGUE_MLB,
     LEAGUE_NBA,
     LEAGUE_NCAAB,
@@ -16,7 +17,7 @@ from .const import (
     LEAGUE_NHL,
 )
 from .games import Game, TeamSide
-from .weather import icon_from_text
+from .weather import icon_from_text, normalize_condition
 
 LEAGUE_PATHS: dict[str, tuple[str, str]] = {
     LEAGUE_NFL: ("football", "nfl"),
@@ -34,6 +35,51 @@ def scoreboard_url(league: str, date_yyyymmdd: str | None = None) -> str:
     if date_yyyymmdd:
         return f"{url}?dates={date_yyyymmdd}"
     return url
+
+
+def summary_url(league: str, event_id: str) -> str:
+    sport, slug = LEAGUE_PATHS[league]
+    return ESPN_SUMMARY.format(sport=sport, league=slug) + f"?event={event_id}"
+
+
+def roster_url(league: str, team_id: str) -> str:
+    sport, slug = LEAGUE_PATHS[league]
+    return (
+        f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{slug}/teams/"
+        f"{team_id}/roster"
+    )
+
+
+def venue_url(league: str, venue_id: str) -> str:
+    sport, slug = LEAGUE_PATHS[league]
+    return (
+        f"https://sports.core.api.espn.com/v2/sports/{sport}/leagues/{slug}/venues/"
+        f"{venue_id}"
+    )
+
+
+def coach_person_url(league: str, coach_id: str) -> str:
+    sport, slug = LEAGUE_PATHS[league]
+    return (
+        f"https://sports.core.api.espn.com/v2/sports/{sport}/leagues/{slug}/coaches/"
+        f"{coach_id}"
+    )
+
+
+def depthchart_url(league: str, team_id: str) -> str:
+    sport, slug = LEAGUE_PATHS[league]
+    return (
+        f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{slug}/teams/"
+        f"{team_id}/depthcharts"
+    )
+
+
+def athlete_statisticslog_url(league: str, athlete_id: str) -> str:
+    sport, slug = LEAGUE_PATHS[league]
+    return (
+        f"https://sports.core.api.espn.com/v2/sports/{sport}/leagues/{slug}/athletes/"
+        f"{athlete_id}/statisticslog"
+    )
 
 
 def parse_scoreboard(payload: dict[str, Any], league: str) -> list[Game]:
@@ -83,9 +129,7 @@ def _parse_event(event: dict[str, Any], league: str) -> Game | None:
     situation = competition.get("situation") if isinstance(competition.get("situation"), dict) else {}
     broadcasts = _broadcasts(competition)
     start = _parse_when(event.get("date") or competition.get("date") or competition.get("startDate"))
-    weather_text = _clean(weather.get("displayValue"))
-    if weather_text and weather_text.isdigit():
-        weather_text = _clean(weather.get("conditionId")) if not str(weather.get("conditionId", "")).isdigit() else ""
+    weather_text = _espn_weather_text(weather)
     temp = _number(weather.get("temperature"))
     period = _period_label(league, status, situation)
     clock = _clean(status.get("displayClock"))
@@ -105,15 +149,52 @@ def _parse_event(event: dict[str, Any], league: str) -> Game | None:
         venue_city=_clean(address.get("city")),
         venue_region=_clean(address.get("state")),
         indoor=bool(venue.get("indoor")),
+        venue_id=_clean(venue.get("id")),
         broadcasts=broadcasts,
         away=away,
         home=home,
         weather_text=weather_text or None,
         weather_temp_f=temp,
         weather_icon=icon_from_text(weather_text),
+        possession=_possession_side(situation, away, home),
+        situation_text=_situation_text(situation),
     )
     game.apply_homes()
     return game
+
+
+def _espn_weather_text(weather: dict[str, Any]) -> str:
+    """Prefer a human condition; ESPN often puts AccuWeather codes in displayValue."""
+    display = _clean(weather.get("displayValue"))
+    condition = _clean(weather.get("conditionId"))
+    if display and not display.isdigit():
+        return normalize_condition(display)
+    if condition and not condition.isdigit():
+        return normalize_condition(condition)
+    return ""
+
+
+def _possession_side(
+    situation: dict[str, Any],
+    away: TeamSide,
+    home: TeamSide,
+) -> str:
+    poss = _clean(situation.get("possession"))
+    if not poss:
+        return ""
+    if away.espn_id and poss == away.espn_id:
+        return "away"
+    if home.espn_id and poss == home.espn_id:
+        return "home"
+    return ""
+
+
+def _situation_text(situation: dict[str, Any]) -> str:
+    return _clean(
+        situation.get("downDistanceText")
+        or situation.get("shortDownDistanceText")
+        or situation.get("possessionText")
+    )
 
 
 def _parse_side(item: Any) -> TeamSide | None:
@@ -135,6 +216,7 @@ def _parse_side(item: Any) -> TeamSide | None:
         if not record and records and isinstance(records[0], dict):
             record = _clean(records[0].get("summary"))
     score = _int_or_none(item.get("score"))
+    venue = team.get("venue") if isinstance(team.get("venue"), dict) else {}
     return TeamSide(
         abbreviation=abbreviation,
         name=_clean(team.get("displayName") or team.get("name")) or abbreviation,
@@ -152,6 +234,8 @@ def _parse_side(item: Any) -> TeamSide | None:
         latitude=None,
         longitude=None,
         record=record,
+        espn_id=_clean(team.get("id")),
+        home_venue_id=_clean(venue.get("id")),
     )
 
 

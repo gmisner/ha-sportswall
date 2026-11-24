@@ -106,12 +106,13 @@ def test_quiet_hours_wraps_midnight() -> None:
 def test_weather_icons() -> None:
     assert icon_from_text("Mostly sunny") == "cloud_sun"
     assert icon_from_text("Thunderstorms") == "storm"
-    temp, text, icon = parse_open_meteo(
-        {"current": {"temperature_2m": 68.2, "weather_code": 61}}
+    temp, text, icon, elevation = parse_open_meteo(
+        {"elevation": 1609.0, "current": {"temperature_2m": 68.2, "weather_code": 61}}
     )
     assert temp == 68.2
     assert icon == "rain"
     assert "rain" in text.lower()
+    assert elevation == 1609.0
 
 
 def test_board_payload_and_png() -> None:

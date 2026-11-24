@@ -28,6 +28,13 @@ class TeamSide:
     latitude: float | None
     longitude: float | None
     record: str = ""
+    espn_id: str = ""
+    home_venue_id: str = ""
+    coach_name: str = ""
+    coach_years: int | None = None
+    qb_name: str = ""
+    qb_years: int | None = None
+    oline_avg_lb: float | None = None
 
     @property
     def city_label(self) -> str:
@@ -35,9 +42,31 @@ class TeamSide:
             return f"{self.city}, {self.region}"
         return self.city or self.location or self.abbreviation
 
+    @property
+    def coach_label(self) -> str:
+        name = (self.coach_name or "").strip()
+        if not name:
+            return ""
+        if self.coach_years is None:
+            return name
+        unit = "yr" if self.coach_years == 1 else "yrs"
+        return f"{name} · {self.coach_years} {unit}"
+
+    @property
+    def qb_label(self) -> str:
+        name = (self.qb_name or "").strip()
+        if not name:
+            return ""
+        if self.qb_years is None:
+            return name
+        unit = "yr" if self.qb_years == 1 else "yrs"
+        return f"{name} · {self.qb_years} {unit}"
+
     def as_dict(self) -> dict[str, Any]:
         payload = asdict(self)
         payload["city_label"] = self.city_label
+        payload["coach_label"] = self.coach_label
+        payload["qb_label"] = self.qb_label
         return payload
 
 
@@ -56,14 +85,22 @@ class Game:
     venue_city: str
     venue_region: str
     indoor: bool
+    venue_id: str = ""
     broadcasts: list[str] = field(default_factory=list)
     away: TeamSide | None = None
     home: TeamSide | None = None
     weather_text: str | None = None
     weather_temp_f: float | None = None
     weather_icon: str = "unknown"
+    elevation_m: float | None = None
     travel_miles: float | None = None
     travel_km: float | None = None
+    # "Grass" / "Turf" from ESPN venue.grass; empty when unknown.
+    surface: str = ""
+    # "away" / "home" when ESPN publishes possession; empty otherwise.
+    possession: str = ""
+    # Live down-and-distance (or sport equivalent) when ESPN provides it.
+    situation_text: str = ""
 
     @property
     def league_label(self) -> str:
@@ -187,6 +224,8 @@ def games_fingerprint(games: list[Game]) -> tuple[tuple[Any, ...], ...]:
             game.home.score if game.home else None,
             tuple(game.broadcasts),
             game.status_detail,
+            game.possession,
+            game.situation_text,
         )
         for game in games
     )

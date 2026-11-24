@@ -436,9 +436,22 @@ def _draw_featured(
     lw, _ = _text_size(draw, league, league_font)
     draw.text((cx - lw // 2, top + 104), league, font=league_font, fill=colors["muted"])
 
-    panel_w = 1320
-    panel_top = top + 164
-    panel_bottom = bottom - 188
+    leaders = list(game.get("leaders") or [])
+    fantasy = list(game.get("fantasy_players") or [])
+    extra = 0
+    if leaders:
+        extra += 110
+    if fantasy:
+        extra += 110
+
+    # Compact team cards; Art'ifacts get the leftover vertical room.
+    artifacts_h = 140
+    panel_h = 420
+    panel_w = 1480
+    band_top = top + 150
+    band_bottom = bottom - artifacts_h - 70 - extra
+    panel_top = band_top + max(0, (band_bottom - band_top - panel_h) // 3)
+    panel_bottom = panel_top + panel_h
     _draw_team_panel(
         image,
         draw,
@@ -465,21 +478,39 @@ def _draw_featured(
     )
 
     vs = "@" if kind == "pre" else "VS"
-    vs_font = _font(56)
+    vs_font = _font(48)
     vw, vh = _text_size(draw, vs, vs_font)
     mid_y = (panel_top + panel_bottom) // 2
-    vs_box = (cx - 78, mid_y - 78, cx + 78, mid_y + 78)
-    _rounded(draw, vs_box, 78, colors["bg"])
+    vs_box = (cx - 64, mid_y - 64, cx + 64, mid_y + 64)
+    _rounded(draw, vs_box, 64, colors["bg"])
     draw.text((cx - vw // 2, mid_y - vh // 2), vs, font=vs_font, fill=colors["muted"])
 
     detail = game.get("status_meta") or game.get("status_label") or ""
-    detail_font = _font(44, "Medium")
+    detail_font = _font(40, "Medium")
     dw, _ = _text_size(draw, str(detail), detail_font)
-    draw.text((cx - dw // 2, panel_bottom + 12), str(detail), font=detail_font, fill=colors["ink"])
+    draw.text((cx - dw // 2, panel_bottom + 18), str(detail), font=detail_font, fill=colors["ink"])
 
-    facts_y = bottom - 148
-    draw.line((120, facts_y, CANVAS[0] - 120, facts_y), fill=colors["line"], width=2)
-    _draw_fact_chips(image, draw, game, (120, facts_y + 16, CANVAS[0] - 120, bottom - 20), colors)
+    facts_y = bottom - artifacts_h - extra
+    draw.line((120, facts_y - 18, CANVAS[0] - 120, facts_y - 18), fill=colors["line"], width=2)
+    facts_bottom = facts_y + artifacts_h - 8
+    _draw_fact_chips(image, draw, game, (120, facts_y, CANVAS[0] - 120, facts_bottom), colors)
+    strip_y = facts_bottom + 10
+    if leaders:
+        strip_y = _draw_info_strip(
+            draw,
+            "LEADERS",
+            [str(row.get("line") or "") for row in leaders[:6]],
+            strip_y,
+            colors,
+        )
+    if fantasy:
+        _draw_info_strip(
+            draw,
+            "YOUR PLAYERS",
+            [str(row.get("line") or "") for row in fantasy[:8]],
+            strip_y,
+            colors,
+        )
 
 
 def _draw_team_panel(
@@ -496,46 +527,58 @@ def _draw_team_panel(
 ) -> None:
     x0, y0, x1, y1 = box
     stripe = _hex_rgb(team.get("color") or "")
-    _rounded(draw, box, 32, colors["bg2"])
+    _rounded(draw, box, 28, colors["bg2"])
     if align == "left":
-        draw.rectangle((x0, y0 + 24, x0 + 16, y1 - 24), fill=stripe)
+        draw.rectangle((x0, y0 + 18, x0 + 14, y1 - 18), fill=stripe)
     else:
-        draw.rectangle((x1 - 16, y0 + 24, x1, y1 - 24), fill=stripe)
+        draw.rectangle((x1 - 14, y0 + 18, x1, y1 - 18), fill=stripe)
     ink = colors["muted"] if dim else colors["ink"]
+    mark_size = 148
     mark = _team_mark(
         str(team.get("abbreviation") or "?"),
         str(team.get("color") or ""),
-        200,
+        mark_size,
         str(team.get("logo_url") or ""),
         show_logos,
         logo_dir,
     )
-    city_font = _font(44, "Medium")
-    name_font = _font(76)
-    abbr_font = _font(88)
-    score_font = _font(176)
+    city_font = _font(36, "Medium")
+    name_font = _font(58)
+    abbr_font = _font(36, "Medium")
+    score_font = _font(148)
     city = str(team.get("city_label") or team.get("location") or "")
     name = str(team.get("nickname") or team.get("name") or "")
     abbr = str(team.get("abbreviation") or "")
-    inner_w = x1 - x0 - 96
-    city_fit = _fit(draw, city, city_font, inner_w)
-    name_fit = _fit(draw, name, name_font, inner_w)
+    pad = 36
+    mid_y = (y0 + y1) // 2
+    sw, sh = _text_size(draw, score, score_font)
+    score_w = max(sw, 160)
     if align == "left":
-        image.alpha_composite(mark, (x0 + 48, y0 + 32))
-        draw.text((x0 + 48, y0 + 248), city_fit, font=city_font, fill=colors["muted"])
-        draw.text((x0 + 48, y0 + 304), name_fit, font=name_font, fill=ink)
-        draw.text((x0 + 48, y0 + 400), abbr, font=abbr_font, fill=ink)
-        draw.text((x0 + 48, y0 + 500), score, font=score_font, fill=ink)
+        logo_x = x0 + pad
+        score_x = x1 - pad - score_w
+        meta_x = logo_x + mark_size + 28
+        meta_w = max(120, score_x - 24 - meta_x)
     else:
-        image.alpha_composite(mark, (x1 - 48 - 200, y0 + 32))
+        logo_x = x1 - pad - mark_size
+        score_x = x0 + pad
+        meta_x = score_x + score_w + 24
+        meta_w = max(120, logo_x - 28 - meta_x)
+    city_fit = _fit(draw, city, city_font, meta_w)
+    name_fit = _fit(draw, name, name_font, meta_w)
+    image.alpha_composite(mark, (logo_x, mid_y - mark_size // 2))
+    text_top = mid_y - 78
+    if align == "right":
         cw, _ = _text_size(draw, city_fit, city_font)
         nw, _ = _text_size(draw, name_fit, name_font)
         aw, _ = _text_size(draw, abbr, abbr_font)
-        sw, _ = _text_size(draw, score, score_font)
-        draw.text((x1 - 48 - cw, y0 + 248), city_fit, font=city_font, fill=colors["muted"])
-        draw.text((x1 - 48 - nw, y0 + 304), name_fit, font=name_font, fill=ink)
-        draw.text((x1 - 48 - aw, y0 + 400), abbr, font=abbr_font, fill=ink)
-        draw.text((x1 - 48 - sw, y0 + 500), score, font=score_font, fill=ink)
+        draw.text((meta_x + meta_w - cw, text_top), city_fit, font=city_font, fill=colors["muted"])
+        draw.text((meta_x + meta_w - nw, text_top + 44), name_fit, font=name_font, fill=ink)
+        draw.text((meta_x + meta_w - aw, text_top + 112), abbr, font=abbr_font, fill=colors["muted"])
+    else:
+        draw.text((meta_x, text_top), city_fit, font=city_font, fill=colors["muted"])
+        draw.text((meta_x, text_top + 44), name_fit, font=name_font, fill=ink)
+        draw.text((meta_x, text_top + 112), abbr, font=abbr_font, fill=colors["muted"])
+    draw.text((score_x + (score_w - sw) // 2, mid_y - sh // 2), score, font=score_font, fill=ink)
 
 
 def _draw_fact_chips(
@@ -545,36 +588,58 @@ def _draw_fact_chips(
     box: tuple[int, int, int, int],
     colors: dict[str, Any],
 ) -> None:
-    x0, y0, x1, _y1 = box
-    font = _font(36, "Medium")
-    chips = []
-    if game.get("network"):
-        chips.append(("TV", str(game["network"])))
-    weather = game.get("weather_line") or ("Indoor" if game.get("indoor") else "")
-    if weather:
-        chips.append(("WX", weather))
-    venue = game.get("venue") or game.get("venue_label") or ""
-    if venue:
-        chips.append(("VENUE", venue))
-    travel = " · ".join(bit for bit in (game.get("travel_label"), game.get("cities_route")) if bit)
-    if travel:
-        chips.append(("TRAVEL", travel))
+    from .artifacts import ARTIFACTS_TITLE
+
+    x0, y0, x1, y1 = box
+    font = _font(32, "Medium")
+    artifacts = list(game.get("artifacts") or [])
+    chips = [(str(item.get("label") or ""), str(item.get("value") or "")) for item in artifacts if item.get("value")]
     if not chips:
         return
-    gap = 24
-    x = x0
-    max_w = x1 - x0
-    each = max(280, (max_w - gap * (len(chips) - 1)) // max(len(chips), 1))
+    title = str(game.get("artifacts_title") or ARTIFACTS_TITLE).upper()
+    title_font = _font(28, "Medium")
+    tw, th = _text_size(draw, title, title_font)
+    chip_h = max(72, y1 - y0)
+    draw.text((x0, y0 + (chip_h - th) // 2), title, font=title_font, fill=colors["accent"])
+    gap = 18
+    title_gap = 28
+    x = x0 + tw + title_gap
+    max_w = x1 - x
+    each = max(200, (max_w - gap * (len(chips) - 1)) // max(len(chips), 1))
     for label, value in chips:
         if x + each > x1 + 8:
             break
-        _rounded(draw, (x, y0, x + each, y0 + 120), 22, colors["chip"])
-        draw.text((x + 24, y0 + 12), label, font=_font(24, "Medium"), fill=colors["accent"])
-        draw.text((x + 24, y0 + 52), _fit(draw, value, font, each - 48), font=font, fill=colors["ink"])
-        if label == "WX":
-            icon = _weather_icon(str(game.get("weather_icon") or "unknown"), 48, colors["muted"], colors["accent"])
-            image.alpha_composite(icon, (x + each - 68, y0 + 12))
+        _rounded(draw, (x, y0, x + each, y0 + chip_h), 18, colors["chip"])
+        draw.text((x + 18, y0 + 10), label.upper(), font=_font(22, "Medium"), fill=colors["accent"])
+        draw.text((x + 18, y0 + 42), _fit(draw, value, font, each - 36), font=font, fill=colors["ink"])
+        if label.lower() == "weather":
+            icon = _weather_icon(str(game.get("weather_icon") or "unknown"), 40, colors["muted"], colors["accent"])
+            image.alpha_composite(icon, (x + each - 56, y0 + 8))
         x += each + gap
+
+
+def _draw_info_strip(
+    draw: ImageDraw.ImageDraw,
+    title: str,
+    lines: list[str],
+    y: int,
+    colors: dict[str, Any],
+) -> int:
+    """Draw a labeled horizontal strip; returns the next y."""
+    clean = [line for line in lines if line]
+    if not clean:
+        return y
+    title_font = _font(28, "Medium")
+    body_font = _font(32, "Medium")
+    draw.text((120, y), title, font=title_font, fill=colors["accent"])
+    text = "   ·   ".join(clean)
+    draw.text(
+        (120, y + 40),
+        _fit(draw, text, body_font, CANVAS[0] - 240),
+        font=body_font,
+        fill=colors["ink"],
+    )
+    return y + 110
 
 
 def _draw_ticker(

@@ -8,25 +8,54 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, Platform
 from homeassistant.core import Event, HomeAssistant, ServiceCall
 
-from .const import CONF_REFRESH_SECONDS, DEFAULT_REFRESH_SECONDS, DOMAIN, SERVICE_RECAST
+from .const import (
+    ATTR_AUTO,
+    ATTR_GAME_ID,
+    CONF_LEAGUES,
+    CONF_REFRESH_SECONDS,
+    DEFAULT_LEAGUES,
+    DEFAULT_REFRESH_SECONDS,
+    DOMAIN,
+    LEAGUE_MLB,
+    LEAGUE_NBA,
+    LEAGUE_NFL,
+    LEAGUE_NHL,
+    SERVICE_RECAST,
+    SERVICE_SELECT_GAME,
+)
 from .dashboard import async_ensure_dashboard, async_write_theme, dashboard_path_for, games_entity_for
+from .http_api import async_register_http
 from .runtime import SportswallRuntime
 from .tv import RECAST_REASON
 from .www_files import async_install_www
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = [Platform.BINARY_SENSOR, Platform.SENSOR, Platform.SWITCH]
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.SELECT, Platform.SENSOR, Platform.SWITCH]
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Move installs off the original 45-second recast default."""
-    if entry.version < 2:
-        data = dict(entry.data)
+    """Apply config-entry schema upgrades."""
+    data = dict(entry.data)
+    version = entry.version
+
+    if version < 2:
         if data.get(CONF_REFRESH_SECONDS) in (None, 45):
             data[CONF_REFRESH_SECONDS] = DEFAULT_REFRESH_SECONDS
-        hass.config_entries.async_update_entry(entry, data=data, version=2)
+        version = 2
         _LOGGER.info("Migrated Sports Wall config entry to version 2")
+
+    if version < 3:
+        # Enable college football for installs still on the pro-only default.
+        old_default = {LEAGUE_NFL, LEAGUE_NBA, LEAGUE_MLB, LEAGUE_NHL}
+        leagues = data.get(CONF_LEAGUES)
+        if leagues is None or set(leagues) == old_default:
+            data[CONF_LEAGUES] = list(DEFAULT_LEAGUES)
+        version = 3
+        _LOGGER.info("Migrated Sports Wall config entry to version 3")
+
+    if version != entry.version or data != dict(entry.data):
+        hass.config_entries.async_update_entry(entry, data=data, version=version)
     return True
 
 
@@ -38,6 +67,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.runtime_data = runtime
 
     await runtime.async_setup()
+    async_register_http(hass)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     try:
         await _async_setup_dashboard(hass, runtime)
@@ -73,8 +103,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     runtime: SportswallRuntime | None = hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
     if runtime is not None:
         await runtime.async_unload()
-    if not hass.data.get(DOMAIN) and hass.services.has_service(DOMAIN, SERVICE_RECAST):
-        hass.services.async_remove(DOMAIN, SERVICE_RECAST)
+    if not hass.data.get(DOMAIN):
+        if hass.services.has_service(DOMAIN, SERVICE_RECAST):
+            hass.services.async_remove(DOMAIN, SERVICE_RECAST)
+        if hass.services.has_service(DOMAIN, SERVICE_SELECT_GAME):
+            hass.services.async_remove(DOMAIN, SERVICE_SELECT_GAME)
     return unload_ok
 
 
@@ -83,12 +116,26 @@ async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> Non
 
 
 def _async_register_services(hass: HomeAssistant) -> None:
-    if hass.services.has_service(DOMAIN, SERVICE_RECAST):
-        return
+    if not hass.services.has_service(DOMAIN, SERVICE_RECAST):
 
-    async def _recast(_call: ServiceCall) -> None:
-        for runtime in hass.data.get(DOMAIN, {}).values():
-            if isinstance(runtime, SportswallRuntime):
-                await runtime.async_cast(reason=RECAST_REASON)
+        async def _recast(_call: ServiceCall) -> None:
+            for runtime in hass.data.get(DOMAIN, {}).values():
+                if isinstance(runtime, SportswallRuntime):
+                    await runtime.async_cast(reason=RECAST_REASON)
 
-    hass.services.async_register(DOMAIN, SERVICE_RECAST, _recast)
+        hass.services.async_register(DOMAIN, SERVICE_RECAST, _recast)
+
+    if not hass.services.has_service(DOMAIN, SERVICE_SELECT_GAME):
+
+        async def _select_game(call: ServiceCall) -> None:
+            auto = bool(call.data.get(ATTR_AUTO))
+            game_id = None if auto else call.data.get(ATTR_GAME_ID)
+            if isinstance(game_id, str):
+                game_id = game_id.strip() or None
+            else:
+                game_id = None
+            for runtime in hass.data.get(DOMAIN, {}).values():
+                if isinstance(runtime, SportswallRuntime):
+                    await runtime.async_set_pinned_game(None if auto else game_id)
+
+        hass.services.async_register(DOMAIN, SERVICE_SELECT_GAME, _select_game)

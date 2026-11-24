@@ -13,6 +13,12 @@ from homeassistant.helpers.selector import selector
 from .const import (
     ALL_LEAGUES,
     CONF_DISPLAY_MODE,
+    CONF_FANTASY_ENABLED,
+    CONF_FANTASY_ESPN_S2,
+    CONF_FANTASY_LEAGUE_ID,
+    CONF_FANTASY_SEASON,
+    CONF_FANTASY_SWID,
+    CONF_FANTASY_TEAM_ID,
     CONF_LEAGUES,
     CONF_QUIET_ENABLED,
     CONF_QUIET_END,
@@ -27,6 +33,7 @@ from .const import (
     CONF_TV_POWER,
     CONF_UNITS,
     DEFAULT_DISPLAY_MODE,
+    DEFAULT_FANTASY_ENABLED,
     DEFAULT_LEAGUES,
     DEFAULT_QUIET_ENABLED,
     DEFAULT_QUIET_END,
@@ -55,6 +62,7 @@ from .const import (
     UNIT_IMPERIAL,
     UNIT_METRIC,
 )
+from .fantasy_espn import current_fantasy_season
 
 
 def _league_options() -> list[dict[str, str]]:
@@ -217,6 +225,39 @@ def _options_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
                 CONF_QUIET_END,
                 default=defaults.get(CONF_QUIET_END, DEFAULT_QUIET_END),
             ): selector({"time": {}}),
+            vol.Required(
+                CONF_FANTASY_ENABLED,
+                default=defaults.get(CONF_FANTASY_ENABLED, DEFAULT_FANTASY_ENABLED),
+            ): bool,
+            vol.Optional(
+                CONF_FANTASY_LEAGUE_ID,
+                description={"suggested_value": defaults.get(CONF_FANTASY_LEAGUE_ID, "")},
+            ): str,
+            vol.Optional(
+                CONF_FANTASY_TEAM_ID,
+                description={"suggested_value": defaults.get(CONF_FANTASY_TEAM_ID, "")},
+            ): str,
+            vol.Optional(
+                CONF_FANTASY_ESPN_S2,
+                description={"suggested_value": defaults.get(CONF_FANTASY_ESPN_S2, "")},
+            ): selector({"text": {"type": "password"}}),
+            vol.Optional(
+                CONF_FANTASY_SWID,
+                description={"suggested_value": defaults.get(CONF_FANTASY_SWID, "")},
+            ): str,
+            vol.Optional(
+                CONF_FANTASY_SEASON,
+                default=defaults.get(CONF_FANTASY_SEASON, current_fantasy_season()),
+            ): selector(
+                {
+                    "number": {
+                        "min": 2018,
+                        "max": 2035,
+                        "step": 1,
+                        "mode": "box",
+                    }
+                }
+            ),
         }
     )
 
@@ -224,7 +265,7 @@ def _options_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
 class SportswallConfigFlow(ConfigFlow, domain=DOMAIN):
     """Set up Sports Wall."""
 
-    VERSION = 2
+    VERSION = 3
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -264,6 +305,12 @@ class SportswallOptionsFlow(OptionsFlow):
         errors: dict[str, str] = {}
         if user_input is not None:
             errors = _validate(user_input)
+            if user_input.get(CONF_FANTASY_ENABLED):
+                s2 = str(user_input.get(CONF_FANTASY_ESPN_S2) or "").strip() or str(
+                    self._config_entry.data.get(CONF_FANTASY_ESPN_S2) or ""
+                ).strip()
+                if not s2:
+                    errors[CONF_FANTASY_ESPN_S2] = "fantasy_required"
             if not errors:
                 self.hass.config_entries.async_update_entry(
                     self._config_entry, data=_store(user_input, self._config_entry.data)
@@ -292,6 +339,12 @@ def _store(
         CONF_REFRESH_SECONDS: DEFAULT_REFRESH_SECONDS,
         CONF_LEAGUES: list(DEFAULT_LEAGUES),
         CONF_SCOPE: DEFAULT_SCOPE,
+        CONF_FANTASY_ENABLED: DEFAULT_FANTASY_ENABLED,
+        CONF_FANTASY_LEAGUE_ID: "",
+        CONF_FANTASY_TEAM_ID: "",
+        CONF_FANTASY_ESPN_S2: "",
+        CONF_FANTASY_SWID: "",
+        CONF_FANTASY_SEASON: current_fantasy_season(),
     }
     if existing:
         data.update(existing)
@@ -300,6 +353,16 @@ def _store(
     if isinstance(leagues, str):
         leagues = [item.strip() for item in leagues.split(",") if item.strip()]
     data[CONF_LEAGUES] = [item for item in leagues if item in ALL_LEAGUES] or list(DEFAULT_LEAGUES)
+    for key in (
+        CONF_FANTASY_LEAGUE_ID,
+        CONF_FANTASY_TEAM_ID,
+        CONF_FANTASY_ESPN_S2,
+        CONF_FANTASY_SWID,
+    ):
+        data[key] = str(data.get(key) or "").strip()
+    # Keep prior cookies when the password field is left blank on reconfigure.
+    if existing and not data.get(CONF_FANTASY_ESPN_S2):
+        data[CONF_FANTASY_ESPN_S2] = str(existing.get(CONF_FANTASY_ESPN_S2) or "").strip()
     return data
 
 
@@ -310,4 +373,12 @@ def _validate(user_input: dict[str, Any]) -> dict[str, str]:
     leagues = user_input.get(CONF_LEAGUES) or []
     if not leagues:
         errors[CONF_LEAGUES] = "leagues_required"
+    if user_input.get(CONF_FANTASY_ENABLED):
+        if not str(user_input.get(CONF_FANTASY_LEAGUE_ID) or "").strip():
+            errors[CONF_FANTASY_LEAGUE_ID] = "fantasy_required"
+        if not str(user_input.get(CONF_FANTASY_TEAM_ID) or "").strip():
+            errors[CONF_FANTASY_TEAM_ID] = "fantasy_required"
+        if not str(user_input.get(CONF_FANTASY_SWID) or "").strip():
+            errors[CONF_FANTASY_SWID] = "fantasy_required"
+        # espn_s2 may be blank on options edit when keeping the stored cookie.
     return errors
